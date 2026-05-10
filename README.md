@@ -1,188 +1,116 @@
 <div align="center">
 
-# ⚡ Typical vs Threaded Program Time Tester
+![The Pulse of Parallelism](pulse_of_parallelism_banner_1778436296582.png)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![C++](https://img.shields.io/badge/Language-C%2B%2B-blue.svg)]()
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20WSL-lightgrey.svg)]()
+# 🕰️ The Pulse of Parallelism
 
-**A high-fidelity C++ benchmarking utility designed to analyze and visualize the empirical performance gap between synchronous and concurrent execution models.**
+### _Measuring the Human Effort of Time_
 
-[Overview](#-overview) • [Architecture](#-architecture) • [Features](#-key-capabilities) • [Installation](#-installation) • [Benchmarks](#-running-the-benchmarks) • [Contributing](#-contributing)
+[![License: MIT](https://img.shields.io/badge/License-MIT-E4405F?style=for-the-badge&logo=mit&logoColor=white)](https://opensource.org/licenses/MIT)
+[![C++11](https://img.shields.io/badge/C++-11-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)]()
+[![Build](https://img.shields.io/badge/Production-Ready-2EA44F?style=for-the-badge&logo=github-actions&logoColor=white)]()
+
+**Time is our most precious resource. In the digital realm, we strive to bend it, split it, and harmonize it.**
+
+[Overview](#-overview) • [Architecture](docs/architecture.md) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md) • [Code of Conduct](CODE_OF_CONDUCT.md)
 
 </div>
 
 ---
 
-## 🚀 Overview
+## 🕯️ The Human Connection
 
-This project provides a robust, engineered environment to demonstrate the tangible benefits of multi-threading. By leveraging the **Ackermann function**—a deep, non-primitive recursive algorithm—it generates a measurable computational load that stresses the CPU, providing a clear baseline for performance optimization research.
+In our daily lives, we multitask to save time—listening to a podcast while cooking, or thinking about tomorrow while walking today. This project is a reflection of that human desire: **the quest for concurrency**.
+
+By comparing **Typical (Sequential)** execution with **Threaded (Parallel)** execution, we don't just measure CPU cycles; we measure the efficiency of digital cooperation. We use the **Ackermann Function**—a mathematical beast of recursive depth—to represent the complex, deep-seated tasks that define our modern experience.
 
 ---
 
-## 🏗 Architecture & System Flow
+### 🏗️ System Design & Patterns
 
-The system is designed with a clear separation between the **Orchestration Layer** and the **Computational Engine**.
-
-### High-Level System Architecture
+This project implements the **Strategy Pattern** to achieve absolute decoupling. The orchestrator doesn't care _how_ a task is run, and the task doesn't care _who_ is running it.
 
 ```mermaid
-graph TD
-    A[User Input / CLI] --> B{Main Orchestrator}
-    B -->|Mode 1| C[Sequential Loop]
-    B -->|Mode 2| D[Parallel Thread Manager]
-    
-    subgraph "Computational Engine"
-    C --> E[Ackermann Core]
-    D --> F[pthread_create]
-    F --> G[Task Wrapper]
-    G --> E
-    end
-    
-    E --> H[System metrics / Result]
+classDiagram
+    class Benchmarker {
+        +runBenchmark(ITask, iterations)
+    }
+    class IExecutionStrategy {
+        <<interface>>
+        +run(ITask, iterations)*
+    }
+    class ITask {
+        <<interface>>
+        +execute()*
+    }
+    Benchmarker --> IExecutionStrategy : delegates to
+    IExecutionStrategy ..> ITask : executes
+    IExecutionStrategy <|-- SequentialStrategy : implements
+    IExecutionStrategy <|-- ThreadedStrategy : implements
+    ITask <|-- AckermannTask : implements
 ```
 
-### Execution Lifecycle
+### 🧩 Modular Blueprint
 
-<details>
-<summary><b>View Execution Flow Comparison</b></summary>
+- **Core Interfaces**: `ITask` and `IExecutionStrategy` define the contract of performance.
+- **Task Engine**: The `AckermannTask` encapsulates the computational weight.
+- **Execution Strategies**: Switch seamlessly between `SequentialStrategy` (the lone worker) and `ThreadedStrategy` (the synchronized team).
+- **Orchestrator**: The `Benchmarker` acts as the master of ceremonies, capturing the essence of elapsed time.
 
-#### Mode 1: Sequential Execution
-The CPU processes tasks in a linear queue, bounded by the clock speed of a single core.
 ```mermaid
-sequenceDiagram
-    participant OS as Operating System
-    participant Main as Main Thread
-    participant AE as Ackermann Engine
-    
-    Main->>AE: Execute Task 1
-    AE-->>Main: Return Result
-    Main->>AE: Execute Task 2
-    AE-->>Main: Return Result
-    Main->>AE: Execute Task 3
-    AE-->>Main: Return Result
-```
-
-#### Mode 2: Threaded Execution
-The system spawns concurrent execution units, leveraging multiple hardware threads and the system's task scheduler.
-```mermaid
-sequenceDiagram
-    participant Main as Main Thread
-    participant T1 as Thread 1
-    participant T2 as Thread 2
-    participant T3 as Thread 3
-    participant OS as Pthread Join (Sync)
-    
-    Main->>T1: Spawn
-    Main->>T2: Spawn
-    Main->>T3: Spawn
-    T1->>T1: Compute Ackermann
-    T2->>T2: Compute Ackermann
-    T3->>T3: Compute Ackermann
-    T1-->>OS: Finish
-    T2-->>OS: Finish
-    T3-->>OS: Finish
-    OS-->>Main: Resume Execution
-```
-</details>
-
----
-
-## ✨ Key Capabilities
-
-| Feature | Description |
-| :--- | :--- |
-| **High-Intensity Load** | Uses recursive depth to simulate real-world CPU stress. |
-| **Deterministic Benchmarking** | Precise control over iterations and algorithmic complexity. |
-| **Concurrency Analysis** | Direct comparison of `pthread` overhead vs. parallel gains. |
-| **Automated Build** | Native `Makefile` integration for production-grade compilation. |
-| **CI/CD Integration** | Automated build and test pipelines via GitHub Actions. |
-
----
-
-## 📂 Repository Structure
-
-```text
-.
-├── .github/                # CI/CD Workflows & Templates
-├── assets/                 # Performance Visualizations & Screenshots
-├── docs/                   # Technical Documentation & Architecture
-│   ├── architecture.md     # Internal Logic Details
-│   └── linux-guide.txt     # Environment Setup Guide
-├── src/                    # Source Code
-│   └── main.cpp            # Core Benchmarking Logic
-├── Makefile                # Build System
-├── LICENSE                 # MIT License
-└── README.md               # Main Documentation
+graph LR
+    User([Human Interaction]) --> CLI[CLI Interface]
+    CLI --> Bench[Benchmarker]
+    Bench --> Strategy{Execution Strategy}
+    Strategy -->|Mode 1| Seq[Sequential Strategy]
+    Strategy -->|Mode 2| Par[Parallel Strategy]
+    Seq --> Task[Ackermann Task]
+    Par --> Task
 ```
 
 ---
 
-## 🛠 Tech Stack & Environment
+## 🚀 Awakening the Engine
 
-- **Core Engine**: C++11 (ISO standard for reliability and performance)
-- **Concurrency**: POSIX Threads (`pthread`) for low-level system interaction
-- **Optimization**: GCC `-O2` flags for production-equivalent benchmarking
-- **Environment**: Native Linux or Windows Subsystem for Linux (WSL2)
+### 📦 Installation
 
----
-
-## 📦 Getting Started
-
-### ⚙️ Installation & Build
+Bring the project to life with a single command:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/AhmadHassan-BTed/Typical-Vs-Threaded-Program-time-tester.git
-
-# 2. Enter the directory
-cd Typical-Vs-Threaded-Program-time-tester
-
-# 3. Compile the binary
 make
 ```
 
-### 🚀 Running the Benchmarks
+### ⚡ Running the Benchmark
 
-| Command | Mode | Description |
-| :--- | :--- | :--- |
-| `time ./time_tester 1` | **Typical** | Runs tasks sequentially on a single thread. |
-| `time ./time_tester 2` | **Threaded** | Runs tasks in parallel using `pthread`. |
+Witness the difference between linear effort and collective power.
 
----
+| Command               | Soul                | Description                                                       |
+| :-------------------- | :------------------ | :---------------------------------------------------------------- |
+| `./bin/time_tester 1` | **The Lone Worker** | Tasks are executed one by one, with focused, singular effort.     |
+| `./bin/time_tester 2` | **The Chorus**      | Tasks are executed in parallel, a symphony of concurrent threads. |
 
-## 📊 Performance Visualization
+_You can also specify the number of iterations (default is 3):_
 
-### Sequential Profile
-*Linear progression on a single CPU core.*
-![Sequential Output](assets/Output.png)
-
-### Threaded Profile
-*Concurrent task execution across multiple hardware threads.*
-![Threaded Output](assets/Output_3.png)
+```bash
+./bin/time_tester 2 5
+```
 
 ---
 
-## 🛠 Development Workflow
+## 📊 The Weight of Time
 
-1.  **Build**: Use `make` to compile the optimized binary.
-2.  **Test**: Use `make test` to run a standardized benchmark suite.
-3.  **Clean**: Use `make clean` to remove build artifacts.
+When you run these tests, you are observing the **overhead of creation** versus the **reward of cooperation**.
 
----
-
-## 🤝 Contributing
-
-Contributions that improve the accuracy of the benchmarking or add support for additional threading models (e.g., OpenMP, C++11 Threads) are welcomed. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## 📄 License
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
+- **Sequential** is reliable, simple, but bound by the limits of a single core.
+- **Threaded** is fast, expansive, but requires the energy of synchronization.
 
 ---
 
 <div align="center">
-    <b>Crafted with dedication by <a href="https://github.com/AhmadHassan-BTed">Ahmad Hassan</a></b><br>
-    <i>Engineering transparency through performance analysis.</i>
+
+### 🌌 Let's build a faster tomorrow, together.
+
+**Crafted with 🖤 by [Ahmad Hassan](https://github.com/AhmadHassan-BTed)**  
+_Dedicated to the beauty of efficient systems._
+
 </div>

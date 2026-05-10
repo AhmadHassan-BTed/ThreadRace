@@ -1,37 +1,156 @@
-# System Architecture & Technical Design
+# 🏗️ System Architecture: The Pulse of Parallelism
 
-This document provides a comprehensive technical overview of the **Typical vs Threaded Program Time Tester**, outlining the engineering principles and algorithmic choices that drive its benchmarking capabilities.
+This document outlines the high-level design and engineering principles of the **Typical vs Threaded Program Time Tester**.
 
-## 🧠 Core Engineering Logic
+## 🎯 Design Goals
 
-The fundamental objective of this utility is to provide an empirical comparison between synchronous and asynchronous execution models. To achieve this, the system requires a computational task that is both deterministic and highly demanding of system resources.
+- **0 Coupling**: The computational tasks (`ITask`) have no knowledge of the execution model (`IExecutionStrategy`).
+- **100% Cohesion**: Each component is laser-focused. `Benchmarker` only measures time, `Task` only computes, `Strategy` only orchestrates flow.
+- **Scalability**: The system is open for extension but closed for modification. Adding a new "FibonacciTask" requires zero changes to existing classes.
 
-### The Choice of the Ackermann Function
+---
 
-Rather than utilizing a standard sleep delay or a simple arithmetic loop, the project integrates the **Ackermann function**. This choice was deliberate:
-- **Recursive Depth**: The Ackermann function is famously not primitive recursive, meaning it forces the CPU to manage a massive stack of nested calls.
-- **Resource Stress**: By executing `Ackermann(4, 1)`, the program generates millions of recursive transitions. This creates a realistic "heavy load" that challenges the kernel's thread scheduler and the processor's branch predictor.
-- **Fair Comparison**: Because the mathematical work is identical in both modes, the only variable in the benchmark is the execution strategy (sequential vs. parallel).
+## 🗺️ Static Structure (Class Diagram)
 
-## 🏗 Modular Components
+The following diagram illustrates the relationship between the core interfaces and their concrete implementations. We use **Interface-based Programming** to ensure loose coupling.
 
-### 1. The Compute Engine (`src/main.cpp`)
-- **Execution Orchestrator**: The `main` function acts as a controller, switching logic based on the user-provided mode (1 or 2).
-- **Concurrency Implementation**: Mode 2 utilizes `pthread_create` and `pthread_join`. This implementation is designed to show the overhead of thread lifecycle management versus the speed gains of multi-core parallelism.
-- **Error Handling**: The system includes checks for thread creation failures, ensuring reliability during high-concurrency tests.
+```mermaid
+classDiagram
+    class ITask {
+        <<interface>>
+        +execute()*
+        +getName()* string
+    }
 
-### 2. Build & Optimization (`Makefile`)
-The build system is tuned to produce a production-grade binary:
-- **Optimization**: Uses the `-O2` flag to ensure the compiler doesn't artificially slow down the sequential logic, while still allowing the threading logic to shine.
-- **Linking**: Explicitly links the `pthread` library to ensure compatibility across all POSIX-compliant systems.
+    class IExecutionStrategy {
+        <<interface>>
+        +run(ITask, iterations)*
+        +getStrategyName()* string
+    }
 
-## 📊 Performance Metrics
+    class AckermannTask {
+        -int m
+        -int n
+        +execute()
+        +getName() string
+        -ackermann(m, n) int
+    }
 
-When analyzing the output of this system, three primary metrics are considered:
-1.  **Wall-Clock Time**: The actual time the user waits for completion.
-2.  **User Time**: The amount of time the CPU spent executing the program logic.
-3.  **System Time**: The time spent in kernel-level tasks, such as thread creation and context switching.
+    class SequentialStrategy {
+        +run(ITask, iterations)
+    }
 
-## 🛡️ Compatibility and Standards
+    class ThreadedStrategy {
+        +run(ITask, iterations)
+    }
 
-The project adheres to the **ISO C++11 standard** and the **POSIX.1-2008** threading standard, ensuring it remains a reliable tool for systems programming education and performance research on Linux-based platforms.
+    class Benchmarker {
+        -IExecutionStrategy strategy
+        +runBenchmark(ITask, iterations)
+    }
+
+    ITask <|-- AckermannTask : implements
+    IExecutionStrategy <|-- SequentialStrategy : implements
+    IExecutionStrategy <|-- ThreadedStrategy : implements
+    Benchmarker --> IExecutionStrategy : uses
+    IExecutionStrategy ..> ITask : executes
+```
+
+---
+
+## 📂 Component Architecture
+
+The physical layout of the repository follows industry standards for C++ projects, separating public headers from private implementations.
+
+```mermaid
+graph LR
+    subgraph "Public API (include/)"
+        A[core/Interfaces]
+        B[tasks/Definitions]
+        C[strategies/Definitions]
+    end
+
+    subgraph "Implementation (src/)"
+        D[tasks/Logic]
+        E[strategies/Logic]
+        F[Orchestrator]
+    end
+
+    subgraph "Artifacts"
+        G[obj/ Objects]
+        H[bin/ Executables]
+    end
+
+    F --> A
+    D --> B
+    E --> C
+    D -.-> G
+    E -.-> G
+    F -.-> G
+    G --> H
+```
+
+---
+
+## 🔄 Dynamic Execution Flow (Sequence Diagram)
+
+This diagram shows the lifecycle of a benchmark run, specifically highlighting how the `Benchmarker` wraps the strategy's execution with high-precision timing.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Main
+    participant Bench as Benchmarker
+    participant Strategy as IExecutionStrategy
+    participant Task as ITask
+
+    User->>Main: Execution Command (Mode 2)
+    Main->>Strategy: Instantiate ThreadedStrategy
+    Main->>Task: Instantiate AckermannTask
+    Main->>Bench: Instantiate(Strategy)
+
+    rect rgb(30, 30, 40)
+    Note over Bench, Task: Benchmarking Lifecycle
+    Bench->>Bench: Start std::chrono Timer
+    Bench->>Strategy: run(Task, iterations)
+
+    loop for each iteration
+        Strategy->>Task: execute()
+        Task-->>Strategy: Result
+    end
+
+    Strategy-->>Bench: Strategy Completed
+    Bench->>Bench: Stop std::chrono Timer
+    end
+
+    Bench->>User: Output Performance Metrics
+```
+
+---
+
+## 🛠 Technical Specifications
+
+- **Concurrency Model**: C++11 Standard Threads (`std::thread`) for high-level, cross-platform parallelism.
+- **Timing Engine**: `std::chrono::high_resolution_clock` (nanosecond precision).
+- **Memory Management**: Modern C++ `std::shared_ptr` to ensure zero memory leaks in the orchestration layer.
+- **Compiler Optimization**: `-O3` flag used during build to ensure the benchmarking represents production-level performance.
+
+---
+
+## 🚀 Extensibility: Adding New Benchmarks
+
+The beauty of this architecture is its **Infinite Scalability**. To add a new computational benchmark:
+
+1.  **Create a Task**: Implement the `ITask` interface (e.g., `FibonacciTask`).
+2.  **Define Logic**: Write the heavy computation in the `execute()` method.
+3.  **Inject**: Pass your new task into the `Benchmarker` with any strategy.
+
+```cpp
+// Example: No changes needed to Benchmarker or Strategies!
+auto myNewTask = std::make_shared<MatrixMathTask>(1000);
+benchmarker.runBenchmark(myNewTask, 10);
+```
+
+---
+
+_Engineering transparency through sophisticated design._
