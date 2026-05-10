@@ -1,6 +1,6 @@
 <div align="center">
 
-![The Pulse of Parallelism](pulse_of_parallelism_banner_1778436296582.png)
+![The Pulse of Parallelism](assets/pulse_of_parallelism_banner_1778436296582.png)
 
 # 🕰️ The Pulse of Parallelism
 
