@@ -1,0 +1,16 @@
+# Binaries
+*.exe
+*.out
+*.o
+*.obj
+
+# Debug files
+*.pdb
+*.ilk
+
+# VS Code
+.vscode/
+
+# Build artifacts
+build/
+bin/
