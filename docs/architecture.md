@@ -8,7 +8,7 @@ The fundamental objective of this utility is to provide an empirical comparison 
 
 ### The Choice of the Ackermann Function
 
-Rather than utilizing a standard sleep delay or a simple arithmetic loop, we have integrated the **Ackermann function**. This choice was deliberate:
+Rather than utilizing a standard sleep delay or a simple arithmetic loop, the project integrates the **Ackermann function**. This choice was deliberate:
 - **Recursive Depth**: The Ackermann function is famously not primitive recursive, meaning it forces the CPU to manage a massive stack of nested calls.
 - **Resource Stress**: By executing `Ackermann(4, 1)`, the program generates millions of recursive transitions. This creates a realistic "heavy load" that challenges the kernel's thread scheduler and the processor's branch predictor.
 - **Fair Comparison**: Because the mathematical work is identical in both modes, the only variable in the benchmark is the execution strategy (sequential vs. parallel).

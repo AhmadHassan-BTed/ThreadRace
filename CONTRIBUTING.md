@@ -4,7 +4,7 @@ First off, thanks for taking the time to contribute! ❤️
 
 All types of contributions are welcome, from bug reports to code improvements.
 
-## How Can I Contribute?
+## How to Contribute?
 
 ### Reporting Bugs
 *   Check if the bug is already reported in the Issues.

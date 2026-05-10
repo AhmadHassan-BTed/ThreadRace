@@ -174,7 +174,7 @@ make
 
 ## 🤝 Contributing
 
-We welcome contributions that improve the accuracy of our benchmarking or add support for additional threading models (e.g., OpenMP, C++11 Threads). Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions that improve the accuracy of the benchmarking or add support for additional threading models (e.g., OpenMP, C++11 Threads) are welcomed. Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📄 License
 
