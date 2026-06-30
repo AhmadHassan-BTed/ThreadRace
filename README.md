@@ -1,20 +1,36 @@
 <div align="center">
 
-# 🕰️ The Pulse of Parallelism
+# 🕰️ ThreadRace
 
-### _Measuring the Human Effort of Time_
+### *A C++ Concurrency Telemetry Framework & Execution Speed Tester*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-E4405F?style=for-the-badge&logo=mit&logoColor=white)](https://opensource.org/licenses/MIT)
 [![C++11](https://img.shields.io/badge/C++-11-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)]()
 [![Build](https://img.shields.io/badge/Production-Ready-2EA44F?style=for-the-badge&logo=github-actions&logoColor=white)]()
 
-**Time is our most precious resource. In the digital realm, we strive to bend it, split it, and harmonize it.**
+**Time is a non-renewable, precious human resource. ThreadRace is designed to measure, analyze, and visualize the performance differential between sequential and parallel execution paradigms.**
 
+[Philosophy](#-philosophy) • [Demonstration](#-demonstration) • [Architecture](#-architecture-overview) • [Workflow](#-system-workflow) • [Repository Structure](#-repository-structure) • [Build & Run](#-build--execution-pipeline) • [Contributing](#-development-workflow)
 
+---
+
+</div>
+
+## 🕯️ Philosophy
+
+In daily human life, tasks are split and executed simultaneously to conserve time—cooking while listening to audio, or thinking about future plans while walking. **ThreadRace** is an engineering reflection of this fundamental human urge: **the quest for concurrency**.
+
+By comparing **Typical (Sequential)** execution with **Threaded (Parallel)** execution, ThreadRace measures the efficiency of digital cooperation. The **Ackermann Function**—a deeply recursive mathematical operation—is utilized as a benchmark task to represent high-complexity, processor-intensive operations that demand efficient thread synchronization and compute optimization.
+
+---
+
+## 📊 Demonstration
+
+ThreadRace runs computations in two modes to highlight the divergence between sequential effort and concurrent execution.
 
 <p align="center">
   <b>Regular Execution Benchmark</b><br>
-  <img src="assets/reg.png" alt="Regular Execution Speed (Typical vs Threaded)" width="80%" />
+  <img src="assets/reg.png" alt="Regular Execution Speed (Typical vs Threaded)" width="85%" />
 </p>
 
 <p align="center">
@@ -23,108 +39,271 @@
   <img src="assets/ack-2.png" alt="Threaded Ackermann Run" width="48%" />
 </p>
 
-
-
-
-[Overview](#-overview) • [Architecture](docs/architecture.md) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md) • [Code of Conduct](CODE_OF_CONDUCT.md)
-
-</div>
-
 ---
 
-## 🕯️ The Human Connection
+## 🏗️ Architecture Overview
 
-In our daily lives, we multitask to save time—listening to a podcast while cooking, or thinking about tomorrow while walking today. This project is a reflection of that human desire: **the quest for concurrency**.
+The codebase is built on the **Strategy Design Pattern** to guarantee strict decoupling between benchmarking logic, task definitions, and concrete execution models.
 
-By comparing **Typical (Sequential)** execution with **Threaded (Parallel)** execution, we don't just measure CPU cycles; we measure the efficiency of digital cooperation. We use the **Ackermann Function**—a mathematical beast of recursive depth—to represent the complex, deep-seated tasks that define our modern experience.
-
----
-
-### 🏗️ System Design & Patterns
-
-This project implements the **Strategy Pattern** to achieve absolute decoupling. The orchestrator doesn't care _how_ a task is run, and the task doesn't care _who_ is running it.
+### Static Structure (Class Relationships)
+The class relationship structure isolates execution models from task logic, allowing strategies to handle runtime iteration scheduling independently.
 
 ```mermaid
 classDiagram
-    class Benchmarker {
-        +runBenchmark(ITask, iterations)
-    }
-    class IExecutionStrategy {
-        <<interface>>
-        +run(ITask, iterations)*
-    }
     class ITask {
         <<interface>>
         +execute()*
+        +getName()* string
     }
-    Benchmarker --> IExecutionStrategy : delegates to
-    IExecutionStrategy ..> ITask : executes
+
+    class IExecutionStrategy {
+        <<interface>>
+        +run(ITask, iterations)*
+        +getStrategyName()* string
+    }
+
+    class AckermannTask {
+        -int m
+        -int n
+        +execute()
+        +getName() string
+        -ackermann(m, n) int
+    }
+
+    class SequentialStrategy {
+        +run(ITask, iterations)
+    }
+
+    class ThreadedStrategy {
+        +run(ITask, iterations)
+    }
+
+    class Benchmarker {
+        -IExecutionStrategy strategy
+        +runBenchmark(ITask, iterations)
+    }
+
+    ITask <|-- AckermannTask : implements
     IExecutionStrategy <|-- SequentialStrategy : implements
     IExecutionStrategy <|-- ThreadedStrategy : implements
-    ITask <|-- AckermannTask : implements
+    Benchmarker --> IExecutionStrategy : uses
+    IExecutionStrategy ..> ITask : executes
 ```
 
-### 🧩 Modular Blueprint
-
-- **Core Interfaces**: `ITask` and `IExecutionStrategy` define the contract of performance.
-- **Task Engine**: The `AckermannTask` encapsulates the computational weight.
-- **Execution Strategies**: Switch seamlessly between `SequentialStrategy` (the lone worker) and `ThreadedStrategy` (the synchronized team).
-- **Orchestrator**: The `Benchmarker` acts as the master of ceremonies, capturing the essence of elapsed time.
+### Internal Module Structure
+The directory separation strictly splits interfaces from implementation classes and compiled targets.
 
 ```mermaid
-graph LR
-    User([Human Interaction]) --> CLI[CLI Interface]
-    CLI --> Bench[Benchmarker]
-    Bench --> Strategy{Execution Strategy}
-    Strategy -->|Mode 1| Seq[Sequential Strategy]
-    Strategy -->|Mode 2| Par[Parallel Strategy]
-    Seq --> Task[Ackermann Task]
-    Par --> Task
+graph TD
+    subgraph CoreAbstractions ["Core Abstractions (include/core)"]
+        ITask["ITask (Interface)"]
+        IExecutionStrategy["IExecutionStrategy (Interface)"]
+    end
+
+    subgraph Implementations ["Implementations"]
+        AckermannTask["AckermannTask (Logic in src/tasks)"]
+        SequentialStrategy["SequentialStrategy (Logic in src/strategies)"]
+        ThreadedStrategy["ThreadedStrategy (Logic in src/strategies)"]
+    end
+
+    subgraph Telemetry ["Telemetry & Driver"]
+        Benchmarker["Benchmarker (include/ & src/)"]
+        Main["main.cpp (Entrypoint)"]
+    end
+
+    AckermannTask -.-> ITask
+    SequentialStrategy -.-> IExecutionStrategy
+    ThreadedStrategy -.-> IExecutionStrategy
+    Benchmarker --> IExecutionStrategy
+    IExecutionStrategy -.-> ITask
+    Main --> Benchmarker
+    Main --> AckermannTask
+    Main --> SequentialStrategy
+    Main --> ThreadedStrategy
 ```
 
 ---
 
-## 🚀 Awakening the Engine
+## 🔄 System Workflow & Request Lifecycle
 
-### 📦 Installation
+When a run is initiated via the command line, the execution flows through parsing, strategy instantiation, timed processing, and telemetry reporting.
 
-Bring the project to life with a single command:
+```mermaid
+sequenceDiagram
+    participant User as Terminal CLI
+    participant Main as main.cpp
+    participant Bench as Benchmarker
+    participant Strategy as IExecutionStrategy
+    participant Task as ITask
 
+    User->>Main: Execute program with mode & iterations
+    Main->>Strategy: Instantiate (Sequential or Threaded)
+    Main->>Task: Instantiate AckermannTask(4, 1)
+    Main->>Bench: Instantiate with selected Strategy
+    Main->>Bench: runBenchmark(Task, iterations)
+
+    rect rgb(28, 30, 36)
+        Note over Bench, Task: Telemetry Capture Span
+        Bench->>Bench: Start high_resolution_clock timer
+        Bench->>Strategy: run(Task, iterations)
+
+        loop For each Iteration
+            Strategy->>Task: execute()
+            Task->>Task: Compute Ackermann value
+            Task-->>Strategy: Return Result (65533)
+        end
+
+        Strategy-->>Bench: Return Control
+        Bench->>Bench: Stop high_resolution_clock timer
+    end
+
+    Bench-->>User: Output timings (Real, User, System, CPU%)
+```
+
+### Concurrency and Telemetry Specifications
+*   **Parallelism Engine:** Standard C++11 Threads (`std::thread`) are used to coordinate concurrent thread launches.
+*   **Telemetry precision:** High-resolution timing is driven by `std::chrono::high_resolution_clock` with nanosecond precision capability.
+*   **Memory Management:** Automatic resource cleanup is enforced via modern C++ smart pointers (`std::shared_ptr`).
+
+---
+
+## 💾 Data & Request Lifecycle Flow
+
+The parameters and runtime performance data flow through the framework as detailed below:
+
+```mermaid
+flowchart LR
+    Args[CLI Arguments] --> Parse[main.cpp Parse]
+    Parse -->|Config Object| Strategy[Strategy Config]
+    Parse -->|Parameters| Task[Task Config]
+    
+    subgraph TelemetryContext ["Telemetry & Performance Evaluation"]
+        Strategy --> RunStrategy[Execute Strategy::run]
+        Task --> RunStrategy
+        
+        RunStrategy --> Timer[Start Chrono Clock]
+        Timer --> CoreComputation[Task::execute Iterations]
+        CoreComputation --> TimerStop[Stop Chrono Clock]
+    end
+    
+    TimerStop --> Metrics[Compute Telemetry Metrics]
+    Metrics --> Terminal[Format & Output Terminal Report]
+```
+
+---
+
+## 📂 Repository Structure
+
+The physical layout of the codebase isolates header declarations from implementation details:
+
+```
+ThreadRace/
+├── .editorconfig
+├── .gitignore
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── Makefile
+├── README.md
+├── SECURITY.md
+├── assets/
+│   ├── ack-1.png
+│   ├── ack-2.png
+│   └── reg.png
+├── docs/
+│   ├── architecture.md
+│   └── development.md
+├── include/
+│   ├── Benchmarker.hpp
+│   ├── core/
+│   │   ├── IExecutionStrategy.hpp
+│   │   └── ITask.hpp
+│   ├── strategies/
+│   │   ├── SequentialStrategy.hpp
+│   │   └── ThreadedStrategy.hpp
+│   └── tasks/
+│       └── AckermannTask.hpp
+└── src/
+    ├── Benchmarker.cpp
+    ├── main.cpp
+    ├── strategies/
+    │   ├── SequentialStrategy.cpp
+    │   └── ThreadedStrategy.cpp
+    └── tasks/
+        └── AckermannTask.cpp
+```
+
+---
+
+## 🛠️ Build & Execution Pipeline
+
+The compilation process is managed by a POSIX-compliant Makefile, compiling C++ files with production optimizations (`-O2`).
+
+```mermaid
+graph TD
+    SrcMain["src/main.cpp"] -->|g++ -c| ObjMain["obj/main.o"]
+    SrcBench["src/Benchmarker.cpp"] -->|g++ -c| ObjBench["obj/Benchmarker.o"]
+    SrcStrat["src/strategies/*.cpp"] -->|g++ -c| ObjStrat["obj/*.o"]
+    SrcTasks["src/tasks/*.cpp"] -->|g++ -c| ObjTasks["obj/*.o"]
+    
+    ObjMain -->|g++ Linker| Bin["bin/time_tester"]
+    ObjBench -->|g++ Linker| Bin
+    ObjStrat -->|g++ Linker| Bin
+    ObjTasks -->|g++ Linker| Bin
+```
+
+### 📦 Compilation
+Compile the source code using the provided `Makefile`:
 ```bash
 make
 ```
 
-### ⚡ Running the Benchmark
+### ⚡ Running Benchmarks
+Run the binary with execution strategy modes and iteration count:
 
-Witness the difference between linear effort and collective power.
+| Command | Execution Model | Description |
+| :--- | :--- | :--- |
+| `./bin/time_tester 1` | **Sequential (Typical)** | Tasks run sequentially in a single execution thread. |
+| `./bin/time_tester 2` | **Parallel (Threaded)** | Tasks run concurrently across multiple threads. |
 
-| Command               | Soul                | Description                                                       |
-| :-------------------- | :------------------ | :---------------------------------------------------------------- |
-| `./bin/time_tester 1` | **The Lone Worker** | Tasks are executed one by one, with focused, singular effort.     |
-| `./bin/time_tester 2` | **The Chorus**      | Tasks are executed in parallel, a symphony of concurrent threads. |
-
-_You can also specify the number of iterations (default is 3):_
-
+Custom iterations can be appended as a trailing argument (defaults to `3`):
 ```bash
+# Execute threaded strategy with 5 iterations
 ./bin/time_tester 2 5
 ```
 
 ---
 
-## 📊 The Weight of Time
+## 🚀 Development Workflow
 
-When you run these tests, you are observing the **overhead of creation** versus the **reward of cooperation**.
+Contributors are welcome to submit improvements or add new performance benchmarks. The following pipeline ensures stability:
 
-- **Sequential** is reliable, simple, but bound by the limits of a single core.
-- **Threaded** is fast, expansive, but requires the energy of synchronization.
+<details>
+<summary><b>1. Functional Verification</b></summary>
+
+Ensure the core Ackermann output calculation remains functional and math-accurate:
+*   `Ackermann(4, 1)` must return `65533`.
+</details>
+
+<details>
+<summary><b>2. Concurrency Stress Testing</b></summary>
+
+Verify stability under threaded loads:
+*   Execute mode 2 with a high number of iterations to test against thread leaks or runtime race conditions.
+</details>
+
+<details>
+<summary><b>3. CI/CD Integration</b></summary>
+
+On every push or pull request to the `main` branch, a GitHub Action is triggered to:
+*   Configure a clean Ubuntu runner.
+*   Validate system compilation with `make`.
+*   Execute regression benchmarks with `make test`.
+</details>
 
 ---
 
-<div align="center">
+## 🌌 Credits & Dedication
 
-### 🌌 Let's build a faster tomorrow, together.
-
-**Crafted with 🖤 by [Ahmad Hassan](https://github.com/AhmadHassan-BTed)**  
-_Dedicated to the beauty of efficient systems._
-
-</div>
+**ThreadRace** was created and engineered by **[Ahmad Hassan (B-Ted)](https://github.com/AhmadHassan-BTed)**.  
+*Dedicated to the beauty and clarity of highly efficient, low-overhead systems.*

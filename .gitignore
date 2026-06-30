@@ -2,12 +2,9 @@
 *.out
 *.o
 *.obj
-
 *.pdb
 *.ilk
-
 .vscode/
-
 build/
 bin/
 obj/
