@@ -11,10 +11,18 @@
 **Time is our most precious resource. In the digital realm, we strive to bend it, split it, and harmonize it.**
 
 
+
 <p align="center">
-  <img src="assets/Output.png" alt="Typical vs Threaded Execution Speed Simple Run" width="45%" />
-  <img src="assets/Output_3.png" alt="Typical vs Threaded Execution Speed Complex Run" width="45%" />
+  <b>Regular Execution Benchmark</b><br>
+  <img src="assets/reg.png" alt="Regular Execution Speed (Typical vs Threaded)" width="80%" />
 </p>
+
+<p align="center">
+  <b>Ackermann Function Benchmark (m=4, n=1)</b><br>
+  <img src="assets/ack-1.png" alt="Sequential Ackermann Run" width="48%" />
+  <img src="assets/ack-2.png" alt="Threaded Ackermann Run" width="48%" />
+</p>
+
 
 
 
