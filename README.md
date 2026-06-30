@@ -10,7 +10,12 @@
 
 **Time is our most precious resource. In the digital realm, we strive to bend it, split it, and harmonize it.**
 
-![The Pulse of Parallelism](assets/pulse_of_parallelism_banner_1778436296582.jpg)
+
+<p align="center">
+  <img src="assets/Output.png" alt="Typical vs Threaded Execution Speed Simple Run" width="45%" />
+  <img src="assets/Output_3.png" alt="Typical vs Threaded Execution Speed Complex Run" width="45%" />
+</p>
+
 
 
 [Overview](#-overview) • [Architecture](docs/architecture.md) • [Contributing](CONTRIBUTING.md) • [Security](SECURITY.md) • [Code of Conduct](CODE_OF_CONDUCT.md)
