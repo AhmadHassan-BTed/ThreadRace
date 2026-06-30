@@ -96,7 +96,8 @@ classDiagram
 The directory separation strictly splits interfaces from implementation classes and compiled targets.
 
 ```mermaid
-graph TD
+%%{init: {'flowchart': {'curve': 'ortho'}}}%%
+flowchart TD
     subgraph CoreAbstractions ["Core Abstractions (include/core)"]
         ITask["ITask (Interface)"]
         IExecutionStrategy["IExecutionStrategy (Interface)"]
@@ -175,6 +176,7 @@ sequenceDiagram
 The parameters and runtime performance data flow through the framework as detailed below:
 
 ```mermaid
+%%{init: {'flowchart': {'curve': 'ortho'}}}%%
 flowchart LR
     Args[CLI Arguments] --> Parse[main.cpp Parse]
     Parse -->|Config Object| Strategy[Strategy Config]
@@ -243,7 +245,8 @@ ThreadRace/
 The compilation process is managed by a POSIX-compliant Makefile, compiling C++ files with production optimizations (`-O2`).
 
 ```mermaid
-graph TD
+%%{init: {'flowchart': {'curve': 'ortho'}}}%%
+flowchart TD
     SrcMain["src/main.cpp"] -->|g++ -c| ObjMain["obj/main.o"]
     SrcBench["src/Benchmarker.cpp"] -->|g++ -c| ObjBench["obj/Benchmarker.o"]
     SrcStrat["src/strategies/*.cpp"] -->|g++ -c| ObjStrat["obj/*.o"]
