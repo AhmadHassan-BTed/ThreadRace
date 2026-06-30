@@ -1,8 +1,8 @@
-# 🏗️ System Architecture: The Pulse of Parallelism
+#  System Architecture: The Pulse of Parallelism
 
 This document outlines the high-level design and engineering principles of the **Typical vs Threaded Program Time Tester**.
 
-## 🎯 Design Goals
+##  Design Goals
 
 - **0 Coupling**: The computational tasks (`ITask`) have no knowledge of the execution model (`IExecutionStrategy`).
 - **100% Cohesion**: Each component is laser-focused. `Benchmarker` only measures time, `Task` only computes, `Strategy` only orchestrates flow.
@@ -10,7 +10,7 @@ This document outlines the high-level design and engineering principles of the *
 
 ---
 
-## 🗺️ Static Structure (Class Diagram)
+##  Static Structure (Class Diagram)
 
 The following diagram illustrates the relationship between the core interfaces and their concrete implementations. We use **Interface-based Programming** to ensure loose coupling.
 
@@ -58,7 +58,7 @@ classDiagram
 
 ---
 
-## 📂 Component Architecture
+##  Component Architecture
 
 The physical layout of the repository follows industry standards for C++ projects, separating public headers from private implementations.
 
@@ -92,7 +92,7 @@ graph LR
 
 ---
 
-## 🔄 Dynamic Execution Flow (Sequence Diagram)
+##  Dynamic Execution Flow (Sequence Diagram)
 
 This diagram shows the lifecycle of a benchmark run, specifically highlighting how the `Benchmarker` wraps the strategy's execution with high-precision timing.
 
@@ -128,7 +128,7 @@ sequenceDiagram
 
 ---
 
-## 🛠 Technical Specifications
+##  Technical Specifications
 
 - **Concurrency Model**: C++11 Standard Threads (`std::thread`) for high-level, cross-platform parallelism.
 - **Timing Engine**: `std::chrono::high_resolution_clock` (nanosecond precision).
@@ -137,7 +137,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Extensibility: Adding New Benchmarks
+##  Extensibility: Adding New Benchmarks
 
 The beauty of this architecture is its **Infinite Scalability**. To add a new computational benchmark:
 

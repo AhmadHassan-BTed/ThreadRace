@@ -1,8 +1,8 @@
-# 🛡️ Security Policy: Safeguarding Time
+#  Security Policy: Safeguarding Time
 
 At the core of the **Typical vs Threaded Program Time Tester** is a respect for the user's environment and resources. While this is a benchmarking utility, we treat the security of your system as a priority.
 
-## 🏹 Supported Versions
+##  Supported Versions
 
 We only provide security updates for the latest stable release.
 
@@ -11,7 +11,7 @@ We only provide security updates for the latest stable release.
 | Latest  | ✅ Supported         |
 | < 1.0.0 | ❌ End of Life (EOL) |
 
-## 🛡️ Our Commitment
+##  Our Commitment
 
 Since this project interacts with system threads and high-recursion logic, we ensure:
 
@@ -19,7 +19,7 @@ Since this project interacts with system threads and high-recursion logic, we en
 2. **Minimal Privileges**: The engine requires no elevated permissions to run.
 3. **Transparent Logic**: The source code is modular and open for audit.
 
-## 🚨 Reporting a Vulnerability
+##  Reporting a Vulnerability
 
 If you discover a security vulnerability, please do not open a public issue. Instead:
 

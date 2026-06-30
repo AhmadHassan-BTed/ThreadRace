@@ -1,6 +1,6 @@
 <div align="center">
 
-# ThreadRace ⏱️
+# ThreadRace ⏱
 
 ### _A C++ Concurrency Telemetry Framework & Execution Speed Tester_
 
@@ -16,7 +16,7 @@
 
 </div>
 
-## 🕯️ Philosophy
+##  Philosophy
 
 In daily human life, tasks are split and executed simultaneously to conserve time-cooking while listening to audio, or thinking about future plans while walking. **ThreadRace** is an engineering reflection of this fundamental human urge: **the quest for concurrency**.
 
@@ -24,7 +24,7 @@ By comparing **Typical (Sequential)** execution with **Threaded (Parallel)** exe
 
 ---
 
-## 📊 Demonstration
+##  Demonstration
 
 ThreadRace runs computations in two modes to highlight the divergence between sequential effort and concurrent execution.
 
@@ -41,7 +41,7 @@ ThreadRace runs computations in two modes to highlight the divergence between se
 
 ---
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 The codebase is built on the **Strategy Design Pattern** to guarantee strict decoupling between benchmarking logic, task definitions, and concrete execution models.
 
@@ -127,7 +127,7 @@ flowchart TD
 
 ---
 
-## 🔄 System Workflow & Request Lifecycle
+##  System Workflow & Request Lifecycle
 
 When a run is initiated via the command line, the execution flows through parsing, strategy instantiation, timed processing, and telemetry reporting.
 
@@ -171,7 +171,7 @@ sequenceDiagram
 
 ---
 
-## 💾 Data & Request Lifecycle Flow
+##  Data & Request Lifecycle Flow
 
 The parameters and runtime performance data flow through the framework as detailed below:
 
@@ -197,7 +197,7 @@ flowchart LR
 
 ---
 
-## 📂 Repository Structure
+##  Repository Structure
 
 The physical layout of the codebase isolates header declarations from implementation details:
 
@@ -240,7 +240,7 @@ ThreadRace/
 
 ---
 
-## 🛠️ Build & Execution Pipeline
+##  Build & Execution Pipeline
 
 The compilation process is managed by a POSIX-compliant Makefile, compiling C++ files with production optimizations (`-O2`).
 
@@ -258,7 +258,7 @@ flowchart TD
     ObjTasks -->|g++ Linker| Bin
 ```
 
-### 📦 Compilation
+###  Compilation
 
 Compile the source code using the provided `Makefile`:
 
@@ -266,7 +266,7 @@ Compile the source code using the provided `Makefile`:
 make
 ```
 
-### ⚡ Running Benchmarks
+###  Running Benchmarks
 
 Run the binary with execution strategy modes and iteration count:
 
@@ -284,7 +284,7 @@ Custom iterations can be appended as a trailing argument (defaults to `3`):
 
 ---
 
-## 🚀 Development Workflow
+##  Development Workflow
 
 Contributors are welcome to submit improvements or add new performance benchmarks. The following pipeline ensures stability:
 
@@ -316,7 +316,7 @@ On every push or pull request to the `main` branch, a GitHub Action is triggered
 
 ---
 
-## 🌌 Credits & Dedication
+##  Credits & Dedication
 
 **ThreadRace** was created and engineered by **[Ahmad Hassan (B-Ted)](https://github.com/AhmadHassan-BTed)**.  
 _Dedicated to the beauty and clarity of highly efficient, low-overhead systems._

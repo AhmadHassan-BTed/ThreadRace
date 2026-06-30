@@ -1,4 +1,4 @@
-# 📜 Code of Conduct: The Human Connection
+#  Code of Conduct: The Human Connection
 
 ## Our Pledge
 
