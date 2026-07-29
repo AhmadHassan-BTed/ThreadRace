@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
+#include <cstdint>
 
 namespace Engine {
 
@@ -26,7 +27,7 @@ public:
     RaceEngine();
 
     void start(int m, int n, int parallelWorkerCount = 4);
-    void step();
+    void step(uint32_t stepDelayMs, bool isPlaying);
     void reset();
 
     const AckermannStackEngine& getSequentialEngine() const { return m_seqEngine; }

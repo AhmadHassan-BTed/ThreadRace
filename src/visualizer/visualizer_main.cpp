@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
                         break;
                     case SDLK_s:
                         engine.step();
-                        raceEngine.step();
+                        raceEngine.step(stepDelayMs, true);
                         treeRenderer.updateLayout(engine);
                         break;
                     case SDLK_r:
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
                         std::cout << "[Visualizer] Pacing Delay: " << stepDelayMs << " ms/step" << std::endl;
                         break;
                     case SDLK_RIGHT: // Faster (decrease delay)
-                        stepDelayMs = (stepDelayMs <= 25) ? 5 : stepDelayMs - 25;
+                        stepDelayMs = (stepDelayMs <= 10) ? 2 : stepDelayMs - 25;
                         std::cout << "[Visualizer] Pacing Delay: " << stepDelayMs << " ms/step" << std::endl;
                         break;
                 }
@@ -250,13 +250,19 @@ int main(int argc, char* argv[]) {
         camY += (targetCamY - camY) * 0.1f;
         camZoom += (targetCamZoom - camZoom) * 0.1f;
 
-        // Time-paced simulation step update
+        // Time-paced simulation step update with dynamic sub-stepping for smooth high-speed pacing!
         Uint32 now = SDL_GetTicks();
-        if (isPlaying && (now - lastStepTime >= stepDelayMs)) {
-            engine.step();
-            raceEngine.step();
+        Uint32 elapsed = now - lastStepTime;
+        if (isPlaying && (elapsed >= stepDelayMs)) {
+            Uint32 stepsToTake = std::min<Uint32>(50, elapsed / std::max<Uint32>(1, stepDelayMs));
+            for (Uint32 i = 0; i < stepsToTake; ++i) {
+                engine.step();
+                raceEngine.step(stepDelayMs, true);
+            }
             treeRenderer.updateLayout(engine);
             lastStepTime = now;
+        } else if (!isPlaying) {
+            raceEngine.step(stepDelayMs, false);
         }
 
         // Window Title Telemetry Update

@@ -53,7 +53,7 @@ void RaceArenaRenderer::drawSpeedometerGauge(float cx, float cy, float radius, f
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Dark Gauge Disk
-    glColor4f(0.05f, 0.08f, 0.15f, 0.92f);
+    glColor4f(0.05f, 0.08f, 0.15f, 0.95f);
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(cx, cy);
     for (int i = 0; i <= 32; ++i) {
@@ -62,8 +62,8 @@ void RaceArenaRenderer::drawSpeedometerGauge(float cx, float cy, float radius, f
     }
     glEnd();
 
-    // Gauge Border Arc
-    glColor4f(r, g, b, 0.85f);
+    // Gauge Outer Rim
+    glColor4f(r, g, b, 0.90f);
     glLineWidth(3.0f);
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i <= 32; ++i) {
@@ -72,18 +72,29 @@ void RaceArenaRenderer::drawSpeedometerGauge(float cx, float cy, float radius, f
     }
     glEnd();
 
-    // Active Value Needle
-    float needleAngle = 3.1415926f * (0.75f + 1.5f * (std::min(100.0f, valPercent) / 100.0f));
+    // Active Needle Pointer
+    float needleAngle = 3.1415926f * (0.75f + 1.5f * (std::min(100.0f, std::max(0.0f, valPercent)) / 100.0f));
     glColor4f(1.0f, 0.9f, 0.2f, 1.0f);
     glLineWidth(2.5f);
     glBegin(GL_LINES);
     glVertex2f(cx, cy);
-    glVertex2f(cx + std::cos(needleAngle) * (radius - 6.0f), cy + std::sin(needleAngle) * (radius - 6.0f));
+    glVertex2f(cx + std::cos(needleAngle) * (radius - 5.0f), cy + std::sin(needleAngle) * (radius - 5.0f));
     glEnd();
 
-    // Title and Value Text
-    FontRenderer::getInstance().renderText(cx - 35.0f, cy - radius - 16.0f, title, 0.65f, r, g, b, 0.95f);
-    FontRenderer::getInstance().renderText(cx - 30.0f, cy + 8.0f, valueStr, 0.70f, 1.0f, 1.0f, 1.0f, 0.98f);
+    // Center Hub Dot
+    glColor4f(1.0f, 0.9f, 0.2f, 1.0f);
+    glPointSize(6.0f);
+    glBegin(GL_POINTS);
+    glVertex2f(cx, cy);
+    glEnd();
+
+    // Title ABOVE Disk (Cleanly separated)
+    float titleW = title.length() * 6.5f;
+    FontRenderer::getInstance().renderText(cx - (titleW / 2.0f), cy - radius - 16.0f, title, 0.65f, r, g, b, 0.95f);
+
+    // Value String BELOW Disk (Cleanly separated)
+    float valW = valueStr.length() * 6.5f;
+    FontRenderer::getInstance().renderText(cx - (valW / 2.0f), cy + radius + 5.0f, valueStr, 0.65f, 1.0f, 1.0f, 1.0f, 0.98f);
 }
 
 void RaceArenaRenderer::drawFinishLine(float x, float y, float w, float h) {
@@ -124,7 +135,7 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
     // 1. Header Title Banner
     std::vector<std::string> headerLines = {
         "THREADRACE: REAL-TIME HEAD-TO-HEAD STRATEGY DUEL",
-        "Evaluating Ackermann A(" + std::to_string(raceEngine.getM()) + ", " + std::to_string(raceEngine.getN()) + ") | Comparing Sequential Execution vs Multi-Threaded Parallelism"
+        "Evaluating Ackermann A(" + std::to_string(raceEngine.getM()) + ", " + std::to_string(raceEngine.getN()) + ") | Controls: [LEFT/RIGHT] Speed Pacing   [SPACE] Pause   [R] Restart"
     };
     FontRenderer::getInstance().renderCardHUD(15.0f, 15.0f, static_cast<float>(screenWidth) - 30.0f, 65.0f, headerLines);
 
@@ -133,7 +144,7 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
     float leftX = 15.0f;
     float rightX = 30.0f + cockpitW;
     float topY = 95.0f;
-    float cockpitH = 175.0f;
+    float cockpitH = 160.0f;
 
     // --- Left Cockpit: Sequential Racer (Cyan Theme) ---
     std::vector<std::string> seqLines = {
@@ -141,7 +152,7 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
         "TIME ELAPSED: " + std::to_string(seq.elapsedTimeSec).substr(0, 5) + " s   STEPS: " + std::to_string(seq.stepCount),
         "ACTIVE THREADS: 1 (MINIMAL OVERHEAD)",
         "MEMORY FOOTPRINT: " + std::to_string(seq.memoryKb).substr(0, 5) + " KB (Low Stack Space)",
-        "TIME COMPLEXITY: HIGH (SLOWER) | SPACE COMPLEXITY: LOW (EFFICIENT)"
+        "TIME COMPLEXITY: HIGH (SLOWER)"
     };
     FontRenderer::getInstance().renderCardHUD(leftX, topY, cockpitW, cockpitH, seqLines);
 
@@ -151,11 +162,26 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
         "TIME ELAPSED: " + std::to_string(par.elapsedTimeSec).substr(0, 5) + " s   STEPS: " + std::to_string(par.stepCount),
         "ACTIVE THREADS: " + std::to_string(par.activeThreads) + " WORKERS (HIGH PARALLELISM)",
         "MEMORY FOOTPRINT: " + std::to_string(par.memoryKb).substr(0, 5) + " KB (Thread + Stack Pool)",
-        "TIME COMPLEXITY: LOW (ULTRA FAST) | SPACE COMPLEXITY: HIGH (RESOURCE COST)"
+        "TIME COMPLEXITY: LOW (ULTRA FAST)"
     };
     FontRenderer::getInstance().renderCardHUD(rightX, topY, cockpitW, cockpitH, parLines);
 
-    // 3. Central Race Track & Finish Line Arena
+    // 3. Dedicated Speedometer Gauges on Right Side of Each Cockpit Card (Zero Overlap!)
+    float gaugeRadius = 30.0f;
+    float gauge1X = leftX + cockpitW - 55.0f;
+    float gauge2X = rightX + cockpitW - 55.0f;
+    float gaugeY = topY + 75.0f;
+
+    float seqGaugeVal = std::min(100.0f, static_cast<float>(seq.stepsPerSec / 1.0f));
+    float parGaugeVal = std::min(100.0f, static_cast<float>(par.stepsPerSec / 4.0f));
+
+    std::string seqPaceStr = std::to_string(static_cast<int>(seq.stepsPerSec)) + " S/s";
+    std::string parPaceStr = std::to_string(static_cast<int>(par.stepsPerSec)) + " S/s";
+
+    drawSpeedometerGauge(gauge1X, gaugeY, gaugeRadius, seqGaugeVal, 0.0f, 0.85f, 1.0f, "PACE", seqPaceStr);
+    drawSpeedometerGauge(gauge2X, gaugeY, gaugeRadius, parGaugeVal, 1.0f, 0.84f, 0.0f, "PACE", parPaceStr);
+
+    // 4. Central Race Track & Finish Line Arena
     float trackY = topY + cockpitH + 20.0f;
     float trackW = static_cast<float>(screenWidth) - 80.0f;
     float finishX = leftX + trackW - 25.0f;
@@ -167,8 +193,8 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
     glBegin(GL_QUADS);
     glVertex2f(leftX, trackY);
     glVertex2f(leftX + trackW + 15.0f, trackY);
-    glVertex2f(leftX + trackW + 15.0f, trackY + 220.0f);
-    glVertex2f(leftX, trackY + 220.0f);
+    glVertex2f(leftX + trackW + 15.0f, trackY + 230.0f);
+    glVertex2f(leftX, trackY + 230.0f);
     glEnd();
 
     // Race Track Border
@@ -177,8 +203,8 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
     glBegin(GL_LINE_LOOP);
     glVertex2f(leftX, trackY);
     glVertex2f(leftX + trackW + 15.0f, trackY);
-    glVertex2f(leftX + trackW + 15.0f, trackY + 220.0f);
-    glVertex2f(leftX, trackY + 220.0f);
+    glVertex2f(leftX + trackW + 15.0f, trackY + 230.0f);
+    glVertex2f(leftX, trackY + 230.0f);
     glEnd();
 
     // Draw Track 1: Sequential Track (Cyan)
@@ -208,18 +234,9 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
     // Draw Checkered Finish Line 🏁
     drawFinishLine(finishX, trackY + 25.0f, 20.0f, 150.0f);
 
-    // 4. Live Speedometer Gauges
-    float gaugeRadius = 38.0f;
-    float gauge1X = leftX + cockpitW - 60.0f;
-    float gauge2X = rightX + cockpitW - 60.0f;
-    float gaugeY = topY + 115.0f;
-
-    drawSpeedometerGauge(gauge1X, gaugeY, gaugeRadius, std::min(100.0f, static_cast<float>(seq.stepsPerSec / 10.0f)), 0.0f, 0.85f, 1.0f, "PACE", std::to_string(static_cast<int>(seq.stepsPerSec)) + " S/s");
-    drawSpeedometerGauge(gauge2X, gaugeY, gaugeRadius, std::min(100.0f, static_cast<float>(par.stepsPerSec / 10.0f)), 1.0f, 0.84f, 0.0f, "PACE", std::to_string(static_cast<int>(par.stepsPerSec)) + " S/s");
-
     // 5. Winner Victory Podium & Trade-Off Demystifier Banner
     if (par.isCompleted) {
-        float bannerY = trackY + 175.0f;
+        float bannerY = trackY + 170.0f;
         float bannerW = trackW - 20.0f;
 
         double speedup = raceEngine.getWinnerSpeedup();
@@ -227,7 +244,7 @@ void RaceArenaRenderer::render(const RaceEngine& raceEngine, int screenWidth, in
             "🏁 RACER 2 (PARALLEL WORKER POOL) WINS THE RACE! 🏆",
             "SPEEDUP: " + std::to_string(speedup).substr(0, 4) + "x FASTER  |  TRADE-OFF DEMYSTIFIED: Parallelism sacrifices Memory/Thread Space to minimize Time!"
         };
-        FontRenderer::getInstance().renderCardHUD(leftX + 15.0f, bannerY, bannerW, 55.0f, victoryLines);
+        FontRenderer::getInstance().renderCardHUD(leftX + 15.0f, bannerY, bannerW, 50.0f, victoryLines);
     }
 }
 

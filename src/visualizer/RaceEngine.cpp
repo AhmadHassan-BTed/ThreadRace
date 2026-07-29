@@ -30,7 +30,7 @@ void RaceEngine::start(int m, int n, int parallelWorkerCount) {
     m_seqTelemetry.currentDepth = 1;
     m_seqTelemetry.maxDepth = 1;
     m_seqTelemetry.activeThreads = 1;
-    m_seqTelemetry.memoryKb = 12.0; // Minimal stack memory
+    m_seqTelemetry.memoryKb = 12.0;
     m_seqTelemetry.stepsPerSec = 0.0;
     m_seqTelemetry.elapsedTimeSec = 0.0;
     m_seqTelemetry.isCompleted = false;
@@ -42,7 +42,7 @@ void RaceEngine::start(int m, int n, int parallelWorkerCount) {
     m_parTelemetry.currentDepth = 1;
     m_parTelemetry.maxDepth = 1;
     m_parTelemetry.activeThreads = parallelWorkerCount;
-    m_parTelemetry.memoryKb = 12.0 * parallelWorkerCount + 84.0; // Multi-thread stack & queue allocation
+    m_parTelemetry.memoryKb = 12.0 * parallelWorkerCount + 84.0;
     m_parTelemetry.stepsPerSec = 0.0;
     m_parTelemetry.elapsedTimeSec = 0.0;
     m_parTelemetry.isCompleted = false;
@@ -53,11 +53,14 @@ void RaceEngine::reset() {
     start(m_m, m_n, m_parallelWorkers);
 }
 
-void RaceEngine::step() {
+void RaceEngine::step(uint32_t stepDelayMs, bool isPlaying) {
     auto now = std::chrono::high_resolution_clock::now();
     double totalElapsed = std::chrono::duration<double>(now - m_startTime).count();
 
-    // 1. Advance Sequential Racer (1 step per tick)
+    // Instantaneous Pacing Calculation (Steps per Second driven directly by stepDelayMs!)
+    double basePace = (isPlaying && stepDelayMs > 0) ? (1000.0 / static_cast<double>(stepDelayMs)) : 0.0;
+
+    // 1. Advance Sequential Racer (1 thread)
     if (!m_seqTelemetry.isCompleted) {
         m_seqEngine.step();
         Metrics seqM = m_seqEngine.getMetrics();
@@ -67,16 +70,19 @@ void RaceEngine::step() {
         m_seqTelemetry.isCompleted = seqM.isCompleted;
         m_seqTelemetry.memoryKb = 12.0 + (seqM.currentDepth * 0.4);
         m_seqTelemetry.elapsedTimeSec = totalElapsed;
-        m_seqTelemetry.stepsPerSec = totalElapsed > 0 ? (seqM.stepCount / totalElapsed) : 0.0;
+        m_seqTelemetry.stepsPerSec = isPlaying ? basePace : 0.0;
 
         float targetTotal = static_cast<float>(std::max(1, m_parTotalTargetSteps));
         m_seqTelemetry.progressPercent = std::min(100.0f, (static_cast<float>(seqM.stepCount) / targetTotal) * 100.0f);
         if (seqM.isCompleted) {
             m_seqTelemetry.progressPercent = 100.0f;
+            m_seqTelemetry.stepsPerSec = 0.0;
         }
+    } else {
+        m_seqTelemetry.stepsPerSec = 0.0;
     }
 
-    // 2. Advance Parallel Racer (Multi-Threaded: processes parallelWorkerCount steps per tick!)
+    // 2. Advance Parallel Racer (Multi-Threaded: parallelWorkerCount steps per tick)
     if (!m_parTelemetry.isCompleted) {
         int stepsToAdvance = m_parallelWorkers;
         m_parStepCount += stepsToAdvance;
@@ -85,18 +91,21 @@ void RaceEngine::step() {
             m_parStepCount = m_parTotalTargetSteps;
             m_parTelemetry.isCompleted = true;
             m_parTelemetry.progressPercent = 100.0f;
+            m_parTelemetry.stepsPerSec = 0.0;
         } else {
             m_parTelemetry.progressPercent = (static_cast<float>(m_parStepCount) / static_cast<float>(m_parTotalTargetSteps)) * 100.0f;
+            m_parTelemetry.stepsPerSec = isPlaying ? (basePace * m_parallelWorkers) : 0.0;
         }
 
         m_parTelemetry.stepCount = m_parStepCount;
         m_parTelemetry.elapsedTimeSec = totalElapsed;
-        m_parTelemetry.stepsPerSec = totalElapsed > 0 ? (m_parStepCount / totalElapsed) : 0.0;
 
         // Dynamic parallel depth & memory overhead simulation
         m_parTelemetry.currentDepth = std::max(1, static_cast<int>(std::sin(m_parStepCount * 0.05) * 8 + 12));
         m_parTelemetry.maxDepth = std::max(m_parTelemetry.maxDepth, m_parTelemetry.currentDepth);
         m_parTelemetry.memoryKb = (12.0 * m_parallelWorkers) + (m_parTelemetry.currentDepth * 1.8) + 96.0;
+    } else {
+        m_parTelemetry.stepsPerSec = 0.0;
     }
 }
 
@@ -104,7 +113,7 @@ double RaceEngine::getWinnerSpeedup() const {
     if (m_seqTelemetry.elapsedTimeSec > 0 && m_parTelemetry.elapsedTimeSec > 0) {
         return m_seqTelemetry.elapsedTimeSec / m_parTelemetry.elapsedTimeSec;
     }
-    return static_cast<double>(m_parallelWorkers) * 0.92; // Nominal Speedup ratio
+    return static_cast<double>(m_parallelWorkers) * 0.92;
 }
 
 }
