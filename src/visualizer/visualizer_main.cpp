@@ -3,6 +3,8 @@
 #include "../../include/visualizer/QuantumTreeRenderer.hpp"
 #include "../../include/visualizer/Landscape3DRenderer.hpp"
 #include "../../include/visualizer/SpiralOrbitRenderer.hpp"
+#include "../../include/visualizer/RaceEngine.hpp"
+#include "../../include/visualizer/RaceArenaRenderer.hpp"
 #include "../../include/visualizer/FontRenderer.hpp"
 
 #include <SDL2/SDL.h>
@@ -15,7 +17,7 @@
 
 using namespace Engine;
 
-enum class RenderMode { QUANTUM_TREE = 1, LANDSCAPE_3D = 2, SPIRAL_ORBIT = 3 };
+enum class RenderMode { QUANTUM_TREE = 1, LANDSCAPE_3D = 2, SPIRAL_ORBIT = 3, RACE_ARENA = 4 };
 
 int main(int argc, char* argv[]) {
     // High-complexity default for ~5 minutes of continuous visual evolution: A(3, 3) = 61 (2,432 steps!)
@@ -34,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::cout << "========================================================\n";
     std::cout << "  Loaded Input Parameters: A(" << currentM << ", " << currentN << ")\n";
     std::cout << "  Controls:\n";
-    std::cout << "  [1] Quantum Tree  [2] 3D Landscape  [3] Spiral Orbit\n";
+    std::cout << "  [1] Quantum Tree  [2] 3D Landscape  [3] Spiral Orbit  [4] Thread Race Arena\n";
     std::cout << "  [SPACE/P] Play/Pause  [S] Single Step  [R] Reset/Restart\n";
     std::cout << "  [  /  ] Change m parameter (" << currentM << ")\n";
     std::cout << "  [ - / + ] Change n parameter (" << currentN << ")\n";
@@ -71,10 +73,13 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetSwapInterval(1); // Enable VSync
 
     AckermannStackEngine engine;
+    RaceEngine raceEngine;
     AudioSynthesizer audio;
+
     QuantumTreeRenderer treeRenderer;
     Landscape3DRenderer landscapeRenderer;
     SpiralOrbitRenderer orbitRenderer;
+    RaceArenaRenderer arenaRenderer;
 
     audio.init();
     FontRenderer::getInstance().init();
@@ -96,14 +101,15 @@ int main(int argc, char* argv[]) {
     });
 
     engine.start(currentM, currentN);
+    raceEngine.start(currentM, currentN, 4);
 
-    RenderMode currentMode = RenderMode::QUANTUM_TREE;
+    RenderMode currentMode = RenderMode::RACE_ARENA; // Start in HEAD-TO-HEAD RACE ARENA MODE!
     bool isPlaying = true;
     bool showHUD = true; // Toggle HUD with 'H'
-    Uint32 stepDelayMs = 150; // Initial slow pace of 150ms/step -> ~6 minutes of continuous animation!
+    Uint32 stepDelayMs = 150; // Initial slow pace of 150ms/step
     Uint32 lastStepTime = SDL_GetTicks();
 
-    // Global Camera State across ALL 3 visualizer modes!
+    // Global Camera State across ALL visualizer modes!
     float camX = 0.0f, camY = 0.0f, camZoom = 1.0f;
     float targetCamX = 0.0f, targetCamY = 0.0f, targetCamZoom = 1.0f;
 
@@ -165,10 +171,12 @@ int main(int argc, char* argv[]) {
                         break;
                     case SDLK_s:
                         engine.step();
+                        raceEngine.step();
                         treeRenderer.updateLayout(engine);
                         break;
                     case SDLK_r:
                         engine.start(currentM, currentN);
+                        raceEngine.start(currentM, currentN, 4);
                         targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] RESET A(" << currentM << ", " << currentN << ")" << std::endl;
@@ -176,6 +184,7 @@ int main(int argc, char* argv[]) {
                     case SDLK_LEFTBRACKET: // Decrement m
                         currentM = std::max(0, currentM - 1);
                         engine.start(currentM, currentN);
+                        raceEngine.start(currentM, currentN, 4);
                         targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
@@ -183,6 +192,7 @@ int main(int argc, char* argv[]) {
                     case SDLK_RIGHTBRACKET: // Increment m
                         currentM = std::min(4, currentM + 1);
                         engine.start(currentM, currentN);
+                        raceEngine.start(currentM, currentN, 4);
                         targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
@@ -190,6 +200,7 @@ int main(int argc, char* argv[]) {
                     case SDLK_MINUS: // Decrement n
                         currentN = std::max(0, currentN - 1);
                         engine.start(currentM, currentN);
+                        raceEngine.start(currentM, currentN, 4);
                         targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
@@ -197,6 +208,7 @@ int main(int argc, char* argv[]) {
                     case SDLK_EQUALS: case SDLK_PLUS: // Increment n
                         currentN = std::min(10, currentN + 1);
                         engine.start(currentM, currentN);
+                        raceEngine.start(currentM, currentN, 4);
                         targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
@@ -212,6 +224,10 @@ int main(int argc, char* argv[]) {
                     case SDLK_3:
                         currentMode = RenderMode::SPIRAL_ORBIT;
                         std::cout << "[Visualizer] Switched to Mode 3: Spiral Orbit" << std::endl;
+                        break;
+                    case SDLK_4:
+                        currentMode = RenderMode::RACE_ARENA;
+                        std::cout << "[Visualizer] Switched to Mode 4: Head-to-Head Thread Race Arena" << std::endl;
                         break;
                     case SDLK_m:
                         audio.setEnabled(!audio.isEnabled());
@@ -238,6 +254,7 @@ int main(int argc, char* argv[]) {
         Uint32 now = SDL_GetTicks();
         if (isPlaying && (now - lastStepTime >= stepDelayMs)) {
             engine.step();
+            raceEngine.step();
             treeRenderer.updateLayout(engine);
             lastStepTime = now;
         }
@@ -254,7 +271,7 @@ int main(int argc, char* argv[]) {
         glClearColor(0.027f, 0.035f, 0.055f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Render current visualizer mode with global camera pan/zoom!
+        // Render current visualizer mode!
         if (currentMode == RenderMode::QUANTUM_TREE) {
             glDisable(GL_DEPTH_TEST);
             treeRenderer.render(engine, screenWidth, screenHeight, camX, camY, camZoom);
@@ -263,6 +280,9 @@ int main(int argc, char* argv[]) {
         } else if (currentMode == RenderMode::SPIRAL_ORBIT) {
             glDisable(GL_DEPTH_TEST);
             orbitRenderer.render(engine, screenWidth, screenHeight, camX, camY, camZoom);
+        } else if (currentMode == RenderMode::RACE_ARENA) {
+            glDisable(GL_DEPTH_TEST);
+            arenaRenderer.render(raceEngine, screenWidth, screenHeight);
         }
 
         // Render On-Screen HUD overlay using crisp Game-Engine Texture Atlas Font
@@ -273,18 +293,18 @@ int main(int argc, char* argv[]) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        if (showHUD) {
-            // Top Left HUD Control Panel Card
+        if (showHUD && currentMode != RenderMode::RACE_ARENA) {
+            // Top Left HUD Control Panel Card (modes 1, 2, 3)
             std::vector<std::string> topHudLines = {
                 "EVALUATION TASK: A(" + std::to_string(metrics.m) + ", " + std::to_string(metrics.n) + ")" + (metrics.isCompleted ? " [DONE]" : " [RUNNING]"),
                 "STEPS: " + std::to_string(metrics.stepCount) + "   STACK DEPTH: " + std::to_string(metrics.currentDepth) + "   PACE: " + std::to_string(stepDelayMs) + " MS",
-                "CONTROLS: [SPACE] PLAY/PAUSE   [R] RESTART   [1/2/3] MODES",
+                "CONTROLS: [SPACE] PLAY/PAUSE   [R] RESTART   [1/2/3/4] MODES",
                 "          [I] ZOOM IN   [O] ZOOM OUT (0.01X - 20X)",
                 "          [LEFT/RIGHT] SPEED   [M] SOUND     [H] HIDE HUD"
             };
             FontRenderer::getInstance().renderCardHUD(15.0f, 15.0f, 540.0f, 130.0f, topHudLines);
 
-            // Top Right Live DSA Call Stack Execution Trajectory Card (Demystifies DSA Recursion!)
+            // Top Right Live DSA Call Stack Execution Trajectory Card
             const auto& stack = engine.getStack();
             const auto& nodes = engine.getNodes();
             std::vector<std::string> stackTrajectoryLines;
@@ -330,9 +350,6 @@ int main(int argc, char* argv[]) {
             float cardY = static_cast<float>(screenHeight) - 75.0f;
             float cardW = std::min(1100.0f, static_cast<float>(screenWidth) - 30.0f);
             FontRenderer::getInstance().renderCardHUD(15.0f, cardY, cardW, 60.0f, bottomDescLines);
-        } else {
-            // Subtle hint when HUD is hidden
-            FontRenderer::getInstance().renderText(18.0f, 18.0f, "[H] SHOW HUD", 0.75f, 0.0f, 0.95f, 1.0f, 0.75f);
         }
 
         SDL_GL_SwapWindow(window);

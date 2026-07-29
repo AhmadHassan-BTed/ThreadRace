@@ -25,6 +25,8 @@ VISUALIZER_SRCS := $(SRC_DIR)/visualizer/visualizer_main.cpp \
                    $(SRC_DIR)/visualizer/QuantumTreeRenderer.cpp \
                    $(SRC_DIR)/visualizer/Landscape3DRenderer.cpp \
                    $(SRC_DIR)/visualizer/SpiralOrbitRenderer.cpp \
+                   $(SRC_DIR)/visualizer/RaceEngine.cpp \
+                   $(SRC_DIR)/visualizer/RaceArenaRenderer.cpp \
                    $(SRC_DIR)/visualizer/FontRenderer.cpp
 
 # Object Files
