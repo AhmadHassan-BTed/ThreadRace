@@ -263,14 +263,38 @@ int main(int argc, char* argv[]) {
         glLoadIdentity();
 
         if (showHUD) {
-            std::vector<std::string> hudLines = {
+            // Top HUD Control Panel Card
+            std::vector<std::string> topHudLines = {
                 "EVALUATION TASK: A(" + std::to_string(metrics.m) + ", " + std::to_string(metrics.n) + ")" + (metrics.isCompleted ? " [DONE]" : " [RUNNING]"),
                 "STEPS: " + std::to_string(metrics.stepCount) + "   STACK DEPTH: " + std::to_string(metrics.currentDepth) + "   PACE: " + std::to_string(stepDelayMs) + " MS",
                 "CONTROLS: [SPACE] PLAY/PAUSE   [R] RESTART   [1/2/3] MODES",
                 "          [I] ZOOM IN   [O] ZOOM OUT (0.01X - 20X)",
                 "          [LEFT/RIGHT] SPEED   [M] SOUND     [H] HIDE HUD"
             };
-            FontRenderer::getInstance().renderCardHUD(15.0f, 15.0f, 540.0f, 130.0f, hudLines);
+            FontRenderer::getInstance().renderCardHUD(15.0f, 15.0f, 540.0f, 130.0f, topHudLines);
+
+            // Bottom Description Banner Card explaining current mode
+            std::vector<std::string> bottomDescLines;
+            if (currentMode == RenderMode::QUANTUM_TREE) {
+                bottomDescLines = {
+                    "MODE 1: QUANTUM BRANCHING CALL TREE",
+                    "Visualizes stack expansion. Cyan = Active calls, Gold = Base cases m=0, Green = Resolved values."
+                };
+            } else if (currentMode == RenderMode::LANDSCAPE_3D) {
+                bottomDescLines = {
+                    "MODE 2: 3D HYPER-LOGARITHMIC SURFACE LANDSCAPE",
+                    "Maps A(m,n) growth onto Z = ln(1 + ln(1 + A(m,n))) heightmap. Terrain peaks pulse with live recursion."
+                };
+            } else if (currentMode == RenderMode::SPIRAL_ORBIT) {
+                bottomDescLines = {
+                    "MODE 3: GOLDEN RATIO PHASE-SPACE SPIRAL ORBIT",
+                    "Projects step order & stack depth onto a logarithmic Golden Ratio phi = 1.618 galaxy orbit."
+                };
+            }
+
+            float cardY = static_cast<float>(screenHeight) - 75.0f;
+            float cardW = std::min(1100.0f, static_cast<float>(screenWidth) - 30.0f);
+            FontRenderer::getInstance().renderCardHUD(15.0f, cardY, cardW, 60.0f, bottomDescLines);
         } else {
             // Subtle hint when HUD is hidden
             FontRenderer::getInstance().renderText(18.0f, 18.0f, "[H] SHOW HUD", 0.75f, 0.0f, 0.95f, 1.0f, 0.75f);
