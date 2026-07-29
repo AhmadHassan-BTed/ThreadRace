@@ -16,7 +16,7 @@ void Landscape3DRenderer::init() {
     m_initialized = true;
 }
 
-void Landscape3DRenderer::render(const AckermannStackEngine& engine, int screenWidth, int screenHeight) {
+void Landscape3DRenderer::render(const AckermannStackEngine& engine, int screenWidth, int screenHeight, float camX, float camY, float camZoom) {
     if (!m_initialized) init();
 
     glViewport(0, 0, screenWidth, screenHeight);
@@ -38,8 +38,9 @@ void Landscape3DRenderer::render(const AckermannStackEngine& engine, int screenW
 
     m_rotationAngle += 0.35f;
 
-    // 3D Orbital camera
-    glTranslatef(0.0f, -2.5f, -20.0f);
+    // Global 3D Orbital camera scaling with camZoom and panning with camX/camY!
+    float zDistance = -20.0f / camZoom;
+    glTranslatef(camX * 0.02f, -2.5f + camY * 0.02f, zDistance);
     glRotatef(28.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(m_rotationAngle, 0.0f, 1.0f, 0.0f);
 
@@ -76,7 +77,7 @@ void Landscape3DRenderer::render(const AckermannStackEngine& engine, int screenW
         return baseH + activePulse + wave;
     };
 
-    // 1. Render Filled 3D Surface Quads with height-based color gradient
+    // 1. Render Filled 3D Solid Surface Quads with height-based color gradient
     glEnable(GL_BLEND);
     glBegin(GL_QUADS);
 

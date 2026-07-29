@@ -5,25 +5,7 @@
 
 namespace Engine {
 
-QuantumTreeRenderer::QuantumTreeRenderer() 
-    : m_camX(0.0f), m_camY(0.0f), m_camZoom(1.0f),
-      m_targetCamX(0.0f), m_targetCamY(0.0f), m_targetCamZoom(1.0f) {}
-
-void QuantumTreeRenderer::pan(float dx, float dy) {
-    m_targetCamX += dx / m_camZoom;
-    m_targetCamY += dy / m_camZoom;
-}
-
-void QuantumTreeRenderer::zoom(float factor) {
-    // Smart scalable zoom boundary from 0.01x (macro tree overview) to 20.0x (micro node close-up)
-    m_targetCamZoom = std::max(0.01f, std::min(20.0f, m_targetCamZoom * factor));
-}
-
-void QuantumTreeRenderer::resetCamera() {
-    m_targetCamX = 0.0f;
-    m_targetCamY = 0.0f;
-    m_targetCamZoom = 1.0f;
-}
+QuantumTreeRenderer::QuantumTreeRenderer() {}
 
 void QuantumTreeRenderer::spawnStarburst(float x, float y, float r, float g, float b) {
     for (int i = 0; i < 16; ++i) {
@@ -39,6 +21,16 @@ void QuantumTreeRenderer::spawnStarburst(float x, float y, float r, float g, flo
         p.r = r; p.g = g; p.b = b;
         m_particles.push_back(p);
     }
+}
+
+void QuantumTreeRenderer::spawnEdgeFlow(float x1, float y1, float x2, float y2, float r, float g, float b) {
+    EdgeParticle ep;
+    ep.x1 = x1; ep.y1 = y1;
+    ep.x2 = x2; ep.y2 = y2;
+    ep.progress = 0.0f;
+    ep.speed = 0.05f + static_cast<float>(rand() % 50) / 1000.0f;
+    ep.r = r; ep.g = g; ep.b = b;
+    m_edgeParticles.push_back(ep);
 }
 
 void QuantumTreeRenderer::updateLayout(AckermannStackEngine& engine) {
@@ -92,14 +84,15 @@ void QuantumTreeRenderer::updateLayout(AckermannStackEngine& engine) {
 
     assignCoords(rootId, -nodes[rootId].subWidth / 2.0f, 0);
 
-    // Camera track active node gracefully
+    // Spawn edge energy flows along active stack edges
     const auto& stack = engine.getStack();
-    if (!stack.empty()) {
-        int activeNodeId = stack.back().nodeId;
-        auto it = nodes.find(activeNodeId);
-        if (it != nodes.end()) {
-            m_targetCamX = -it->second.x;
-            m_targetCamY = -it->second.y + 180.0f;
+    if (stack.size() >= 2) {
+        int childNodeId = stack.back().nodeId;
+        int parentNodeId = stack[stack.size() - 2].nodeId;
+        auto pIt = nodes.find(parentNodeId);
+        auto cIt = nodes.find(childNodeId);
+        if (pIt != nodes.end() && cIt != nodes.end()) {
+            spawnEdgeFlow(pIt->second.x, pIt->second.y, cIt->second.x, cIt->second.y, 0.0f, 0.95f, 1.0f);
         }
     }
 }
@@ -121,7 +114,7 @@ void QuantumTreeRenderer::drawCircle(float cx, float cy, float r, int numSegment
 }
 
 void QuantumTreeRenderer::drawBezierEdge(float x1, float y1, float x2, float y2, float red, float green, float blue) {
-    glColor4f(red, green, blue, 0.6f);
+    glColor4f(red, green, blue, 0.65f);
     glLineWidth(2.0f);
 
     glBegin(GL_LINE_STRIP);
@@ -144,11 +137,7 @@ void QuantumTreeRenderer::drawBezierEdge(float x1, float y1, float x2, float y2,
     glEnd();
 }
 
-void QuantumTreeRenderer::render(const AckermannStackEngine& engine, int screenWidth, int screenHeight) {
-    m_camX += (m_targetCamX - m_camX) * 0.1f;
-    m_camY += (m_targetCamY - m_camY) * 0.1f;
-    m_camZoom += (m_targetCamZoom - m_camZoom) * 0.1f;
-
+void QuantumTreeRenderer::render(const AckermannStackEngine& engine, int screenWidth, int screenHeight, float camX, float camY, float camZoom) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-screenWidth / 2.0, screenWidth / 2.0, screenHeight / 2.0, -screenHeight / 2.0, -1.0, 1.0);
@@ -156,10 +145,12 @@ void QuantumTreeRenderer::render(const AckermannStackEngine& engine, int screenW
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glScalef(m_camZoom, m_camZoom, 1.0f);
-    glTranslatef(m_camX, m_camY, 0.0f);
+    glScalef(camZoom, camZoom, 1.0f);
+    glTranslatef(camX, camY, 0.0f);
 
     const auto& nodes = engine.getNodes();
+    const auto& stack = engine.getStack();
+    int activeNodeId = stack.empty() ? -1 : stack.back().nodeId;
 
     // Render Edges
     for (const auto& kv : nodes) {
@@ -177,17 +168,36 @@ void QuantumTreeRenderer::render(const AckermannStackEngine& engine, int screenW
         }
     }
 
+    // Render Edge Energy Flow Particles
+    for (auto it = m_edgeParticles.begin(); it != m_edgeParticles.end(); ) {
+        it->progress += it->speed;
+        if (it->progress >= 1.0f) {
+            it = m_edgeParticles.erase(it);
+        } else {
+            float px = it->x1 + (it->x2 - it->x1) * it->progress;
+            float py = it->y1 + (it->y2 - it->y1) * it->progress;
+            drawCircle(px, py, 4.0f, 12, it->r, it->g, it->b, 0.9f);
+            ++it;
+        }
+    }
+
     // Render Nodes & Values
     for (const auto& kv : nodes) {
         const auto& node = kv.second;
         bool isLeaf = (node.m == 0);
         bool isResolved = (node.status == NodeStatus::RESOLVED);
+        bool isActive = (node.id == activeNodeId);
 
         float r = 0.0f, g = 0.95f, b = 1.0f; // Cyan
         if (isResolved) { r = 0.0f; g = 1.0f; b = 0.53f; } // Green
         else if (isLeaf) { r = 1.0f; g = 0.84f; b = 0.0f; } // Gold
 
         float radius = isLeaf ? 16.0f : 20.0f;
+        if (isActive) {
+            // Active Node Pulsing Energy Target Ring
+            drawCircle(node.x, node.y, radius * 2.0f, 28, 1.0f, 0.2f, 0.6f, 0.45f);
+        }
+
         // Outer Glow
         drawCircle(node.x, node.y, radius * 1.35f, 24, r, g, b, 0.25f);
         // Inner Core
@@ -202,7 +212,7 @@ void QuantumTreeRenderer::render(const AckermannStackEngine& engine, int screenW
         FontRenderer::getInstance().renderText(txtX, txtY, label, 0.65f, 1.0f, 1.0f, 1.0f, 0.98f);
     }
 
-    // Update & Render Particles
+    // Update & Render Starburst Particles
     for (auto it = m_particles.begin(); it != m_particles.end(); ) {
         it->x += it->vx;
         it->y += it->vy;

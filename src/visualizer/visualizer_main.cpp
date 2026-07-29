@@ -11,6 +11,7 @@
 #include <string>
 #include <cstdlib>
 #include <algorithm>
+#include <vector>
 
 using namespace Engine;
 
@@ -40,7 +41,7 @@ int main(int argc, char* argv[]) {
     std::cout << "  [I] Zoom In  [O] Zoom Out (Scalable 0.01x - 20x)\n";
     std::cout << "  [M] Toggle Audio Sound Synthesis\n";
     std::cout << "  [LEFT/RIGHT] Adjust Delay (ms per step)\n";
-    std::cout << "  [H] Toggle HUD On-Screen Controls\n";
+    std::cout << "  [H] Toggle HUD On-Screen Controls & Demystifier Trajectory\n";
     std::cout << "  [Mouse Drag/Wheel] Pan & Zoom Camera\n";
     std::cout << "  [ESC/Q] Quit\n";
     std::cout << "========================================================\n\n";
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
     audio.init();
     FontRenderer::getInstance().init();
 
-    // Subscribe audio to engine events
+    // Subscribe audio and edge particle events to engine
     engine.setEventCallback([&](const EngineEvent& ev) {
         if (ev.type == EngineEventType::PUSH) {
             audio.playNote(ev.depth, false);
@@ -101,6 +102,10 @@ int main(int argc, char* argv[]) {
     bool showHUD = true; // Toggle HUD with 'H'
     Uint32 stepDelayMs = 150; // Initial slow pace of 150ms/step -> ~6 minutes of continuous animation!
     Uint32 lastStepTime = SDL_GetTicks();
+
+    // Global Camera State across ALL 3 visualizer modes!
+    float camX = 0.0f, camY = 0.0f, camZoom = 1.0f;
+    float targetCamX = 0.0f, targetCamY = 0.0f, targetCamZoom = 1.0f;
 
     bool isMouseDown = false;
     int lastMouseX = 0, lastMouseY = 0;
@@ -131,13 +136,14 @@ int main(int argc, char* argv[]) {
                 if (isMouseDown) {
                     int dx = ev.motion.x - lastMouseX;
                     int dy = ev.motion.y - lastMouseY;
-                    treeRenderer.pan(static_cast<float>(dx), static_cast<float>(dy));
+                    targetCamX += dx / targetCamZoom;
+                    targetCamY += dy / targetCamZoom;
                     lastMouseX = ev.motion.x;
                     lastMouseY = ev.motion.y;
                 }
             } else if (ev.type == SDL_MOUSEWHEEL) {
-                if (ev.wheel.y > 0) treeRenderer.zoom(1.15f);
-                else if (ev.wheel.y < 0) treeRenderer.zoom(0.87f);
+                if (ev.wheel.y > 0) targetCamZoom = std::max(0.01f, std::min(20.0f, targetCamZoom * 1.15f));
+                else if (ev.wheel.y < 0) targetCamZoom = std::max(0.01f, std::min(20.0f, targetCamZoom * 0.87f));
             } else if (ev.type == SDL_KEYDOWN) {
                 switch (ev.key.keysym.sym) {
                     case SDLK_ESCAPE: case SDLK_q:
@@ -147,11 +153,11 @@ int main(int argc, char* argv[]) {
                         showHUD = !showHUD;
                         std::cout << "[Visualizer] HUD " << (showHUD ? "SHOWN" : "HIDDEN") << std::endl;
                         break;
-                    case SDLK_i: // Zoom In
-                        treeRenderer.zoom(1.2f);
+                    case SDLK_i: // Zoom In across all modes
+                        targetCamZoom = std::max(0.01f, std::min(20.0f, targetCamZoom * 1.25f));
                         break;
-                    case SDLK_o: // Zoom Out
-                        treeRenderer.zoom(0.833f);
+                    case SDLK_o: // Zoom Out across all modes
+                        targetCamZoom = std::max(0.01f, std::min(20.0f, targetCamZoom * 0.8f));
                         break;
                     case SDLK_SPACE: case SDLK_p:
                         isPlaying = !isPlaying;
@@ -163,35 +169,35 @@ int main(int argc, char* argv[]) {
                         break;
                     case SDLK_r:
                         engine.start(currentM, currentN);
-                        treeRenderer.resetCamera();
+                        targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] RESET A(" << currentM << ", " << currentN << ")" << std::endl;
                         break;
                     case SDLK_LEFTBRACKET: // Decrement m
                         currentM = std::max(0, currentM - 1);
                         engine.start(currentM, currentN);
-                        treeRenderer.resetCamera();
+                        targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
                         break;
                     case SDLK_RIGHTBRACKET: // Increment m
                         currentM = std::min(4, currentM + 1);
                         engine.start(currentM, currentN);
-                        treeRenderer.resetCamera();
+                        targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
                         break;
                     case SDLK_MINUS: // Decrement n
                         currentN = std::max(0, currentN - 1);
                         engine.start(currentM, currentN);
-                        treeRenderer.resetCamera();
+                        targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
                         break;
                     case SDLK_EQUALS: case SDLK_PLUS: // Increment n
                         currentN = std::min(10, currentN + 1);
                         engine.start(currentM, currentN);
-                        treeRenderer.resetCamera();
+                        targetCamX = 0.0f; targetCamY = 0.0f; targetCamZoom = 1.0f;
                         isPlaying = true;
                         std::cout << "[Visualizer] Input set to A(" << currentM << ", " << currentN << ")" << std::endl;
                         break;
@@ -223,6 +229,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // Smooth camera movement interpolation
+        camX += (targetCamX - camX) * 0.1f;
+        camY += (targetCamY - camY) * 0.1f;
+        camZoom += (targetCamZoom - camZoom) * 0.1f;
+
         // Time-paced simulation step update
         Uint32 now = SDL_GetTicks();
         if (isPlaying && (now - lastStepTime >= stepDelayMs)) {
@@ -243,15 +254,15 @@ int main(int argc, char* argv[]) {
         glClearColor(0.027f, 0.035f, 0.055f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Render current visualizer mode
+        // Render current visualizer mode with global camera pan/zoom!
         if (currentMode == RenderMode::QUANTUM_TREE) {
             glDisable(GL_DEPTH_TEST);
-            treeRenderer.render(engine, screenWidth, screenHeight);
+            treeRenderer.render(engine, screenWidth, screenHeight, camX, camY, camZoom);
         } else if (currentMode == RenderMode::LANDSCAPE_3D) {
-            landscapeRenderer.render(engine, screenWidth, screenHeight);
+            landscapeRenderer.render(engine, screenWidth, screenHeight, camX, camY, camZoom);
         } else if (currentMode == RenderMode::SPIRAL_ORBIT) {
             glDisable(GL_DEPTH_TEST);
-            orbitRenderer.render(engine, screenWidth, screenHeight);
+            orbitRenderer.render(engine, screenWidth, screenHeight, camX, camY, camZoom);
         }
 
         // Render On-Screen HUD overlay using crisp Game-Engine Texture Atlas Font
@@ -263,7 +274,7 @@ int main(int argc, char* argv[]) {
         glLoadIdentity();
 
         if (showHUD) {
-            // Top HUD Control Panel Card
+            // Top Left HUD Control Panel Card
             std::vector<std::string> topHudLines = {
                 "EVALUATION TASK: A(" + std::to_string(metrics.m) + ", " + std::to_string(metrics.n) + ")" + (metrics.isCompleted ? " [DONE]" : " [RUNNING]"),
                 "STEPS: " + std::to_string(metrics.stepCount) + "   STACK DEPTH: " + std::to_string(metrics.currentDepth) + "   PACE: " + std::to_string(stepDelayMs) + " MS",
@@ -272,6 +283,30 @@ int main(int argc, char* argv[]) {
                 "          [LEFT/RIGHT] SPEED   [M] SOUND     [H] HIDE HUD"
             };
             FontRenderer::getInstance().renderCardHUD(15.0f, 15.0f, 540.0f, 130.0f, topHudLines);
+
+            // Top Right Live DSA Call Stack Execution Trajectory Card (Demystifies DSA Recursion!)
+            const auto& stack = engine.getStack();
+            const auto& nodes = engine.getNodes();
+            std::vector<std::string> stackTrajectoryLines;
+            stackTrajectoryLines.push_back("LIVE RECURSION STACK TRAJECTORY:");
+            
+            int stackSize = static_cast<int>(stack.size());
+            int showCount = std::min<int>(5, stackSize);
+            for (int i = stackSize - 1; i >= stackSize - showCount; --i) {
+                if (i < 0 || i >= stackSize) break;
+                const auto& frame = stack[i];
+                int depth = i + 1;
+                auto it = nodes.find(frame.nodeId);
+                if (it != nodes.end()) depth = it->second.depth;
+
+                stackTrajectoryLines.push_back("  [DEPTH " + std::to_string(depth) + "] A(" + std::to_string(frame.m) + ", " + std::to_string(frame.n) + ")");
+            }
+            if (stackTrajectoryLines.size() == 1) {
+                stackTrajectoryLines.push_back("  [STACK EMPTY - COMPLETED]");
+            }
+            float rightCardW = 340.0f;
+            float rightCardX = static_cast<float>(screenWidth) - rightCardW - 15.0f;
+            FontRenderer::getInstance().renderCardHUD(rightCardX, 15.0f, rightCardW, 130.0f, stackTrajectoryLines);
 
             // Bottom Description Banner Card explaining current mode
             std::vector<std::string> bottomDescLines;

@@ -1,6 +1,6 @@
 # Compiler and Flags
 CXX      := g++
-CXXFLAGS := -std=c++11 -O3 -Wall -Wextra
+CXXFLAGS := -std=c++11 -g -O2 -Wall -Wextra
 INCLUDES := -Iinclude
 LIBS     := -pthread
 
