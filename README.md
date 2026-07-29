@@ -41,6 +41,35 @@ ThreadRace runs computations in two modes to highlight the divergence between se
 
 ---
 
+## 🎨 Native C++ Ackermann Visualizer Suite
+
+ThreadRace includes a **jaw-dropping, native C++ multi-paradigm hardware-accelerated visualizer** for the Ackermann function built directly using **SDL2 + OpenGL** and **SDL Audio Synthesis** (`bin/ackermann_visualizer`). It transforms hyper-exponential recursive trees into stunning real-time 60 FPS visual artwork.
+
+### Key Features:
+- **Quantum Branching Network (2D/3D Force Tree):** Visualizes the recursive execution trace with glowing OpenGL nodes, organic Bezier curves, particle starbursts on base case resolution, and camera tracking.
+- **Hyper-Logarithmic 3D Landscape (OpenGL Height Map):** Renders $A(m, n)$ on a 3D terrain height map compressed using $Z(m, n) = \ln(1 + \ln(1 + A(m, n)))$.
+- **Golden Spiral Phase Orbit:** Maps call stack depth and step indexes onto a logarithmic golden ratio $\phi$ particle galaxy.
+- **Polyphonic Audio Sonification:** Real-time SDL2 audio callback synthesis playing C-major pentatonic harmonic notes as recursive calls push and resolve.
+
+### Build & Run Native C++ Visualizer:
+```bash
+make all
+./bin/ackermann_visualizer
+```
+
+### Keyboard & Mouse Controls:
+- **`1` / `2` / `3`**: Switch Render Modes (1: Quantum Tree, 2: 3D Landscape, 3: Golden Spiral Orbit)
+- **`SPACE` / `P`**: Play / Pause evaluation simulation
+- **`S`**: Single Step forward
+- **`R`**: Reset simulation
+- **`M`**: Toggle Sound Synthesis ON/OFF
+- **`UP` / `DOWN`**: Adjust simulation speed (steps/frame)
+- **Mouse Drag / Wheel**: Pan & Zoom camera
+
+---
+
+
+
 ##  Architecture Overview
 
 The codebase is built on the **Strategy Design Pattern** to guarantee strict decoupling between benchmarking logic, task definitions, and concrete execution models.
