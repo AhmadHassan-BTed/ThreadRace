@@ -1,6 +1,6 @@
 <div align="center">
 
-# ThreadRace ⏱
+# ThreadRace
 
 ### _A C++ Concurrency Telemetry Framework & Execution Speed Tester_
 
@@ -10,13 +10,13 @@
 
 **Time is a non-renewable, precious human resource. ThreadRace is designed to measure, analyze, and visualize the performance differential between sequential and parallel execution paradigms.**
 
-[Philosophy](#-philosophy) • [Demonstration](#-demonstration) • [Architecture](#-architecture-overview) • [Workflow](#-system-workflow) • [Repository Structure](#-repository-structure) • [Build & Run](#-build--execution-pipeline) • [Contributing](#-development-workflow)
+[Philosophy](#philosophy) • [Demonstration](#visual-showcase--demonstration) • [Architecture](#architecture-overview) • [Workflow](#system-workflow--request-lifecycle) • [Repository Structure](#repository-structure) • [Build & Run](#build--execution-pipeline) • [Contributing](#development-workflow)
 
 ---
 
 </div>
 
-##  Philosophy
+## Philosophy
 
 In daily human life, tasks are split and executed simultaneously to conserve time-cooking while listening to audio, or thinking about future plans while walking. **ThreadRace** is an engineering reflection of this fundamental human urge: **the quest for concurrency**.
 
@@ -24,59 +24,106 @@ By comparing **Typical (Sequential)** execution with **Threaded (Parallel)** exe
 
 ---
 
-##  Demonstration
+## Visual Showcase & Demonstration
 
-ThreadRace runs computations in two modes to highlight the divergence between sequential effort and concurrent execution.
+ThreadRace provides high-precision CLI timing telemetry alongside a **60 FPS Native C++ SDL2 + OpenGL Hardware-Accelerated Visualizer Suite** (`bin/ackermann_visualizer`).
+
+### Visualizer Suite Modes
 
 <p align="center">
-  <b>Regular Execution Benchmark</b><br>
+  <b>Mode 1: Quantum Branching Network (2D/3D Force Tree)</b><br>
+  <img src="assets/Visualization1.png" alt="Quantum Branching Network Mode" width="95%" />
+</p>
+<p align="center">
+  <i>Displays the dynamic recursive execution tree with glowing OpenGL nodes, Bezier branch curves, starburst particles on base-case evaluations, and real-time camera tracking.</i>
+</p>
+
+<br>
+
+<p align="center">
+  <b>Mode 2: Hyper-Logarithmic 3D Landscape (OpenGL Terrain Height Map)</b><br>
+  <img src="assets/Visualization2.png" alt="Hyper-Logarithmic 3D Landscape Mode" width="95%" />
+</p>
+<p align="center">
+  <i>Visualizes Ackermann growth $A(m, n)$ on a 3D height field terrain log-compressed using $Z(m, n) = \ln(1 + \ln(1 + A(m, n)))$.</i>
+</p>
+
+<br>
+
+<p align="center">
+  <b>Mode 3: Golden Spiral Phase Orbit</b><br>
+  <img src="assets/Visualization3.png" alt="Golden Spiral Phase Orbit Mode" width="95%" />
+</p>
+<p align="center">
+  <i>Maps call stack depth and frame steps onto a logarithmic golden ratio $\phi$ particle galaxy with glowing orbit trails and depth rings.</i>
+</p>
+
+<br>
+
+<p align="center">
+  <b>Mode 4: Head-to-Head Thread Race Arena</b><br>
+  <img src="assets/Visualization4.png" alt="Head-to-Head Thread Race Arena Mode" width="95%" />
+</p>
+<p align="center">
+  <i>Direct side-by-side competition comparing Sequential (1 Thread) vs. Parallel Execution, showing active threads, memory footprint, speedup telemetry, step progress bars, and finish line detection.</i>
+</p>
+
+<br>
+
+### Execution Benchmark CLI Outputs
+
+<p align="center">
+  <b>Regular Execution Benchmark Output</b><br>
   <img src="assets/reg.png" alt="Regular Execution Speed (Typical vs Threaded)" width="85%" />
 </p>
 
 <p align="center">
-  <b>Ackermann Function Benchmark (m=4, n=1)</b><br>
+  <b>Ackermann Function Benchmark Telemetry (m=4, n=1)</b><br>
   <img src="assets/ack-1.png" alt="Sequential Ackermann Run" width="48%" />
   <img src="assets/ack-2.png" alt="Threaded Ackermann Run" width="48%" />
 </p>
 
 ---
 
-## 🎨 Native C++ Ackermann Visualizer Suite
+## Native C++ Ackermann Visualizer Suite
 
-ThreadRace includes a **jaw-dropping, native C++ multi-paradigm hardware-accelerated visualizer** for the Ackermann function built directly using **SDL2 + OpenGL** and **SDL Audio Synthesis** (`bin/ackermann_visualizer`). It transforms hyper-exponential recursive trees into stunning real-time 60 FPS visual artwork.
+The native visualizer suite (`bin/ackermann_visualizer`) bridges pure math, real-time audio synthesis, OpenGL graphic rendering, and threading telemetry into an immersive interactive application.
 
 ### Key Features:
-- **Quantum Branching Network (2D/3D Force Tree):** Visualizes the recursive execution trace with glowing OpenGL nodes, organic Bezier curves, particle starbursts on base case resolution, and camera tracking.
-- **Hyper-Logarithmic 3D Landscape (OpenGL Height Map):** Renders $A(m, n)$ on a 3D terrain height map compressed using $Z(m, n) = \ln(1 + \ln(1 + A(m, n)))$.
-- **Golden Spiral Phase Orbit:** Maps call stack depth and step indexes onto a logarithmic golden ratio $\phi$ particle galaxy.
-- **Polyphonic Audio Sonification:** Real-time SDL2 audio callback synthesis playing C-major pentatonic harmonic notes as recursive calls push and resolve.
+- **Mode 1 — Quantum Branching Network (2D/3D Force Tree):** Interactive visual trace of recursive call stacks with animated pulse propagation, base-case starbursts, organic Bezier connectors, and target camera focus.
+- **Mode 2 — Hyper-Logarithmic 3D Landscape:** Renders exponential mathematical functions on a dynamic 3D surface grid compressed via hyper-logarithmic functions.
+- **Mode 3 — Golden Spiral Phase Orbit:** Orbital phase-space visualization based on the golden ratio ($\phi$) mapping stack depth to radial velocity and particle emissions.
+- **Mode 4 — Head-to-Head Thread Race Arena:** Side-by-side execution race between single-threaded and multi-threaded worker pools with live progress bars, memory meters, and speedup ratios.
+- **Polyphonic Audio Sonification:** Real-time SDL2 audio callback synthesizing C-major pentatonic harmonic notes as recursive stacks push and resolve.
+- **Demystifier HUD Overlay & Trajectory Tracking:** Live parameter feedback, active stack depth counters, call count statistics, and control key legend.
 
 ### Build & Run Native C++ Visualizer:
 ```bash
 make all
-./bin/ackermann_visualizer
+./bin/ackermann_visualizer [m] [n]
 ```
 
 ### Keyboard & Mouse Controls:
-- **`1` / `2` / `3`**: Switch Render Modes (1: Quantum Tree, 2: 3D Landscape, 3: Golden Spiral Orbit)
-- **`SPACE` / `P`**: Play / Pause evaluation simulation
-- **`S`**: Single Step forward
-- **`R`**: Reset simulation
-- **`M`**: Toggle Sound Synthesis ON/OFF
-- **`UP` / `DOWN`**: Adjust simulation speed (steps/frame)
-- **Mouse Drag / Wheel**: Pan & Zoom camera
+- **`1` / `2` / `3` / `4`**: Switch Render Modes (1: Quantum Tree, 2: 3D Landscape, 3: Golden Spiral Orbit, 4: Thread Race Arena)
+- **`SPACE` / `P`**: Play / Pause simulation evaluation
+- **`S`**: Single Step forward (when paused)
+- **`R`**: Reset / Restart simulation
+- **`[` / `]`**: Adjust $m$ parameter value
+- **`-` / `+`**: Adjust $n$ parameter value
+- **`LEFT` / `RIGHT`**: Adjust step delay (ms per iteration step)
+- **`I` / `O`**: Zoom In / Zoom Out camera view (0.01x - 20x)
+- **`M`**: Toggle Real-time Audio Sonification ON/OFF
+- **`H`**: Toggle On-Screen Demystifier HUD Overlay
+- **Mouse Drag / Scroll Wheel**: Pan camera position & Smooth zoom controls
+- **`ESC` / `Q`**: Quit visualizer suite
 
 ---
 
+## Architecture Overview
 
-
-##  Architecture Overview
-
-The codebase is built on the **Strategy Design Pattern** to guarantee strict decoupling between benchmarking logic, task definitions, and concrete execution models.
+The codebase uses clean object-oriented patterns isolating telemetry capture, computational task definitions, execution strategies, and visual rendering modules.
 
 ### Static Structure (Class Relationships)
-
-The class relationship structure isolates execution models from task logic, allowing strategies to handle runtime iteration scheduling independently.
 
 ```mermaid
 classDiagram
@@ -113,50 +160,110 @@ classDiagram
         +runBenchmark(ITask, iterations)
     }
 
+    class AckermannStackEngine {
+        -int m
+        -int n
+        +step()
+        +getNodes()
+        +getMetrics()
+        +setEventCallback()
+    }
+
+    class RaceEngine {
+        -int m
+        -int n
+        -int parallelWorkers
+        +step(stepDelayMs, isPlaying)
+        +getSequentialTelemetry()
+        +getParallelTelemetry()
+    }
+
+    class AudioSynthesizer {
+        +init()
+        +playNote(depth, isResolve)
+        +playComplete()
+    }
+
+    class QuantumTreeRenderer {
+        +render(engine, camera)
+        +spawnStarburst(x, y, r, g, b)
+    }
+
+    class Landscape3DRenderer {
+        +render(m, n, camera)
+    }
+
+    class SpiralOrbitRenderer {
+        +render(engine, camera)
+    }
+
+    class RaceArenaRenderer {
+        +render(raceEngine, fontRenderer)
+    }
+
     ITask <|-- AckermannTask : implements
     IExecutionStrategy <|-- SequentialStrategy : implements
     IExecutionStrategy <|-- ThreadedStrategy : implements
     Benchmarker --> IExecutionStrategy : uses
     IExecutionStrategy ..> ITask : executes
+    RaceEngine --> AckermannStackEngine : uses
+    QuantumTreeRenderer ..> AckermannStackEngine : renders
+    Landscape3DRenderer ..> AckermannStackEngine : renders
+    SpiralOrbitRenderer ..> AckermannStackEngine : renders
+    RaceArenaRenderer ..> RaceEngine : renders
+    AckermannStackEngine ..> AudioSynthesizer : triggers audio events
 ```
 
 ### Internal Module Structure
 
-The directory separation strictly splits interfaces from implementation classes and compiled targets.
-
 ```mermaid
 %%{init: {'flowchart': {'curve': 'ortho'}}}%%
 flowchart TD
-    subgraph CoreAbstractions ["Core Abstractions (include/core)"]
-        ITask["ITask (Interface)"]
-        IExecutionStrategy["IExecutionStrategy (Interface)"]
+    subgraph CoreAbstractions ["Core Abstractions & Drivers"]
+        ITask["ITask Interface"]
+        IExecutionStrategy["IExecutionStrategy Interface"]
+        Benchmarker["Benchmarker Telemetry"]
+        Main["main.cpp (time_tester)"]
     end
 
-    subgraph Implementations ["Implementations"]
-        AckermannTask["AckermannTask (Logic in src/tasks)"]
-        SequentialStrategy["SequentialStrategy (Logic in src/strategies)"]
-        ThreadedStrategy["ThreadedStrategy (Logic in src/strategies)"]
+    subgraph StrategiesAndTasks ["Strategies & Benchmark Tasks"]
+        AckermannTask["AckermannTask"]
+        SequentialStrategy["SequentialStrategy"]
+        ThreadedStrategy["ThreadedStrategy"]
     end
 
-    subgraph Telemetry ["Telemetry & Driver"]
-        Benchmarker["Benchmarker (include/ & src/)"]
-        Main["main.cpp (Entrypoint)"]
+    subgraph VisualizerSuite ["Native C++ OpenGL/SDL2 Visualizer Suite"]
+        VisMain["visualizer_main.cpp (ackermann_visualizer)"]
+        StackEngine["AckermannStackEngine"]
+        RaceEngine["RaceEngine"]
+        AudioSynth["AudioSynthesizer (SDL Audio Callback)"]
+        FontRenderer["FontRenderer (Bitmap Text HUD)"]
+        
+        TreeRender["QuantumTreeRenderer (Mode 1)"]
+        LandRender["Landscape3DRenderer (Mode 2)"]
+        OrbitRender["SpiralOrbitRenderer (Mode 3)"]
+        ArenaRender["RaceArenaRenderer (Mode 4)"]
     end
 
     AckermannTask -.-> ITask
     SequentialStrategy -.-> IExecutionStrategy
     ThreadedStrategy -.-> IExecutionStrategy
     Benchmarker --> IExecutionStrategy
-    IExecutionStrategy -.-> ITask
     Main --> Benchmarker
-    Main --> AckermannTask
-    Main --> SequentialStrategy
-    Main --> ThreadedStrategy
+
+    VisMain --> StackEngine
+    VisMain --> RaceEngine
+    VisMain --> AudioSynth
+    VisMain --> FontRenderer
+    VisMain --> TreeRender
+    VisMain --> LandRender
+    VisMain --> OrbitRender
+    VisMain --> ArenaRender
 ```
 
 ---
 
-##  System Workflow & Request Lifecycle
+## System Workflow & Request Lifecycle
 
 When a run is initiated via the command line, the execution flows through parsing, strategy instantiation, timed processing, and telemetry reporting.
 
@@ -200,7 +307,7 @@ sequenceDiagram
 
 ---
 
-##  Data & Request Lifecycle Flow
+## Data & Request Lifecycle Flow
 
 The parameters and runtime performance data flow through the framework as detailed below:
 
@@ -226,9 +333,9 @@ flowchart LR
 
 ---
 
-##  Repository Structure
+## Repository Structure
 
-The physical layout of the codebase isolates header declarations from implementation details:
+The physical layout isolates public include headers, logic implementations, graphics assets, and compiled targets:
 
 ```
 ThreadRace/
@@ -241,12 +348,16 @@ ThreadRace/
 ├── README.md
 ├── SECURITY.md
 ├── assets/
-│   ├── ack-1.png
-│   ├── ack-2.png
-│   └── reg.png
+│   ├── Visualization1.png    # Mode 1: Quantum Tree Screenshot
+│   ├── Visualization2.png    # Mode 2: 3D Landscape Screenshot
+│   ├── Visualization3.png    # Mode 3: Spiral Orbit Screenshot
+│   ├── Visualization4.png    # Mode 4: Thread Race Arena Screenshot
+│   ├── ack-1.png             # Sequential Ackermann CLI Output
+│   ├── ack-2.png             # Threaded Ackermann CLI Output
+│   └── reg.png               # Regular Benchmark CLI Output
 ├── docs/
-│   ├── architecture.md
-│   └── development.md
+│   ├── architecture.md       # High-Level Design & Visualizer System Architecture
+│   └── development.md        # Build Instructions & Test Protocols
 ├── include/
 │   ├── Benchmarker.hpp
 │   ├── core/
@@ -255,21 +366,42 @@ ThreadRace/
 │   ├── strategies/
 │   │   ├── SequentialStrategy.hpp
 │   │   └── ThreadedStrategy.hpp
-│   └── tasks/
-│       └── AckermannTask.hpp
+│   ├── tasks/
+│   │   └── AckermannTask.hpp
+│   └── visualizer/
+│       ├── AckermannStackEngine.hpp
+│       ├── AudioSynthesizer.hpp
+│       ├── FontRenderer.hpp
+│       ├── Landscape3DRenderer.hpp
+│       ├── QuantumTreeRenderer.hpp
+│       ├── RaceArenaRenderer.hpp
+│       ├── RaceEngine.hpp
+│       └── SpiralOrbitRenderer.hpp
+├── bin/                      # Compiled Executables (time_tester, ackermann_visualizer)
+├── obj/                      # Compiled Object Files
 └── src/
     ├── Benchmarker.cpp
     ├── main.cpp
     ├── strategies/
     │   ├── SequentialStrategy.cpp
     │   └── ThreadedStrategy.cpp
-    └── tasks/
-        └── AckermannTask.cpp
+    ├── tasks/
+    │   └── AckermannTask.cpp
+    └── visualizer/
+        ├── AckermannStackEngine.cpp
+        ├── AudioSynthesizer.cpp
+        ├── FontRenderer.cpp
+        ├── Landscape3DRenderer.cpp
+        ├── QuantumTreeRenderer.cpp
+        ├── RaceArenaRenderer.cpp
+        ├── RaceEngine.cpp
+        ├── SpiralOrbitRenderer.cpp
+        └── visualizer_main.cpp
 ```
 
 ---
 
-##  Build & Execution Pipeline
+## Build & Execution Pipeline
 
 The compilation process is managed by a POSIX-compliant Makefile, compiling C++ files with production optimizations (`-O2`).
 
@@ -287,22 +419,22 @@ flowchart TD
     ObjTasks -->|g++ Linker| Bin
 ```
 
-###  Compilation
+### Compilation
 
 Compile the source code using the provided `Makefile`:
 
 ```bash
-make
+make all
 ```
 
-###  Running Benchmarks
+### Running Benchmarks
 
 Run the binary with execution strategy modes and iteration count:
 
-| Command               | Execution Model          | Description                                          |
-| :-------------------- | :----------------------- | :--------------------------------------------------- |
+| Command | Execution Model | Description |
+| :--- | :--- | :--- |
 | `./bin/time_tester 1` | **Sequential (Typical)** | Tasks run sequentially in a single execution thread. |
-| `./bin/time_tester 2` | **Parallel (Threaded)**  | Tasks run concurrently across multiple threads.      |
+| `./bin/time_tester 2` | **Parallel (Threaded)** | Tasks run concurrently across multiple threads. |
 
 Custom iterations can be appended as a trailing argument (defaults to `3`):
 
@@ -313,7 +445,7 @@ Custom iterations can be appended as a trailing argument (defaults to `3`):
 
 ---
 
-##  Development Workflow
+## Development Workflow
 
 Contributors are welcome to submit improvements or add new performance benchmarks. The following pipeline ensures stability:
 
@@ -323,7 +455,7 @@ Contributors are welcome to submit improvements or add new performance benchmark
 Ensure the core Ackermann output calculation remains functional and math-accurate:
 
 - `Ackermann(4, 1)` must return `65533`.
-    </details>
+</details>
 
 <details>
 <summary><b>2. Concurrency Stress Testing</b></summary>
@@ -331,7 +463,7 @@ Ensure the core Ackermann output calculation remains functional and math-accurat
 Verify stability under threaded loads:
 
 - Execute mode 2 with a high number of iterations to test against thread leaks or runtime race conditions.
-    </details>
+</details>
 
 <details>
 <summary><b>3. CI/CD Integration</b></summary>
@@ -341,11 +473,11 @@ On every push or pull request to the `main` branch, a GitHub Action is triggered
 - Configure a clean Ubuntu runner.
 - Validate system compilation with `make`.
 - Execute regression benchmarks with `make test`.
-    </details>
+</details>
 
 ---
 
-##  Credits & Dedication
+## Credits & Dedication
 
 **ThreadRace** was created and engineered by **[Ahmad Hassan (B-Ted)](https://github.com/AhmadHassan-BTed)**.  
 _Dedicated to the beauty and clarity of highly efficient, low-overhead systems._
